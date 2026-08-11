@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grade Tycoon</title>
+<meta name="description" content="Build your agency in 4 quarters. See a real Grade-style P&L — then run the real thing on grade.app.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy:#111D29;
+  --navy2:#0A141E;
+  --blue:#0351FF;
+  --lblue:#6FC1FF;
+  --green:#4ADE80;
+  --yellow:#FBBF24;
+  --red:#EF4444;
+  --panel:#182636;
+  --border:#2A3D52;
+  --pixel:#1a1a2e;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--navy2); color:#E8EEF5;
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  image-rendering:pixelated;
+}
+.pixel{font-family:'Press Start 2P',monospace;}
+#app{
+  width:100%; max-width:1080px; background:var(--navy);
+  border:4px solid var(--border); box-shadow:0 0 0 4px var(--navy2), 0 12px 0 rgba(0,0,0,.4);
+  position:relative; overflow:hidden;
+}
+
+/* ---------- PIXEL LOGO ---------- */
+.pxlogo{display:grid; margin:0 auto;}
+.logoRow{display:flex; align-items:center; justify-content:center; gap:10px;}
+
+/* ---------- START SCREEN ---------- */
+#start{ padding:36px 24px; text-align:center; }
+#start h1{
+  font-size:18px; color:var(--lblue); margin:10px 0 6px;
+  text-shadow:3px 3px 0 var(--blue);
+}
+#start p.sub{ font-size:11px; line-height:1.9; color:#9FB3C8; margin-bottom:26px; }
+.company-picks{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:26px; }
+.pick{
+  background:var(--panel); border:3px solid var(--border); padding:16px; width:190px; cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset -2px -2px 0 rgba(0,0,0,.35);
+  transition: transform .12s, border-color .12s;
+}
+.pick:hover{ border-color:var(--blue); transform:translateY(-3px); }
+.pick.sel{ border-color:var(--green); box-shadow:0 0 0 2px var(--green); }
+.pick .ico{ font-size:28px; margin-bottom:10px; filter:contrast(1.1); }
+.pick .name{ font-family:'Press Start 2P'; font-size:9px; color:var(--lblue); margin-bottom:8px; line-height:1.5; }
+.pick .desc{ font-size:11px; color:#9FB3C8; line-height:1.5; }
+button.big{
+  font-family:'Press Start 2P'; font-size:12px; background:var(--blue); color:#fff;
+  border:none; padding:16px 32px; cursor:pointer;
+  box-shadow:0 5px 0 #0233a8, inset -3px -3px 0 rgba(0,0,0,.25), inset 3px 3px 0 rgba(255,255,255,.25);
+}
+button.big:active{ box-shadow:0 2px 0 #0233a8; transform:translateY(3px); }
+button.big:disabled{ background:#2A3D52; box-shadow:0 5px 0 #17222f; cursor:not-allowed; color:#5a6b7d; }
+button.ghost{
+  font-family:'Press Start 2P'; font-size:9px; background:transparent; color:var(--lblue);
+  border:2px solid var(--border); padding:12px 18px; cursor:pointer; margin-top:10px;
+}
+button.ghost:hover{ border-color:var(--blue); }
+
+/* ---------- GAME SCREEN ---------- */
+#game{ display:none; }
+#hud{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--navy2); border-bottom:3px solid var(--border);
+  padding:10px 16px; font-family:'Press Start 2P'; font-size:8px; flex-wrap:wrap; gap:8px;
+}
+#hud .stat{ color:#9FB3C8; }
+#hud .stat b{ display:block; color:#fff; font-size:10px; margin-top:4px; }
+#hud .budget b{ color:var(--green); }
+#hud .budget.neg b{ color:var(--red); }
+#hud .timer b{ color:var(--yellow); }
+#helpBtn{
+  font-family:'Press Start 2P'; font-size:11px; background:var(--panel); color:var(--lblue);
+  border:2px solid var(--border); width:30px; height:30px; cursor:pointer; flex-shrink:0;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.35), inset 2px 2px 0 rgba(255,255,255,.08);
+}
+#helpBtn:hover{ border-color:var(--blue); }
+
+#hintBar{
+  background:#0d1826; border-bottom:2px solid var(--border); padding:8px 14px;
+  font-size:11px; color:var(--lblue); text-align:center; min-height:16px;
+}
+
+#main{ display:flex; flex-wrap:wrap; }
+#officeCol{ flex:1.25; min-width:360px; padding:14px; border-right:3px solid var(--border); }
+#officeTop{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+#officeTierName{ font-family:'Press Start 2P'; font-size:9px; color:var(--lblue); }
+#officeProgress{ font-size:10px; color:#7d93aa; }
+
+#officeSceneWrap{ display:flex; gap:8px; align-items:flex-end; justify-content:center; }
+#floorCircles{ display:flex; flex-direction:column-reverse; gap:6px; align-items:center; justify-content:flex-end; padding-bottom:2px; }
+.floorCircle{
+  width:22px; height:22px; border-radius:0; background:var(--panel); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P'; font-size:9px; color:#5a6b7d;
+  image-rendering:pixelated;
+}
+.floorCircle.unlocked{ color:#cfe0f0; border-color:var(--lblue); }
+.floorCircle.active{ background:var(--blue); border-color:var(--lblue); color:#fff; }
+
+/* ---- ISOMETRIC OFFICE ---- */
+#officeScene{
+  position:relative; width:100%; max-width:420px; height:320px; margin:0 auto;
+  border:3px solid var(--border); overflow:hidden;
+  background:
+    linear-gradient(180deg, #2a3a4e 0%, #1e2d3e 38%, transparent 38%),
+    #0e1620;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.35);
+}
+#officeScene.tier2{ border-color:#4a7a5a; }
+#officeScene.tier3{ border-color:var(--blue); box-shadow:inset 0 0 28px rgba(3,81,255,.25); }
+.sceneBadge{
+  position:absolute; top:6px; left:8px; z-index:20; background:rgba(10,20,30,.85); color:#fff;
+  font-family:'Press Start 2P'; font-size:7px; padding:4px 6px; letter-spacing:.5px;
+}
+#isoWorld{
+  position:absolute; left:50%; top:52%; width:0; height:0;
+  transform:translate(-50%, -50%);
+  z-index:2;
+}
+.isoFloor{
+  position:absolute; width:56px; height:28px;
+  transform:translate(-50%, -50%);
+  background:#8fa3b8;
+  clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
+  z-index:0;
+}
+.isoFloor.alt{ background:#7d92a8; }
+.isoFloor.tier2{ background:#8fb89a; }
+.isoFloor.tier2.alt{ background:#7aa688; }
+.isoFloor.tier3{ background:#7ea8e0; }
+.isoFloor.tier3.alt{ background:#6b96d4; }
+
+.isoDesk{
+  position:absolute; width:40px; height:28px;
+  transform:translate(-50%, -100%);
+  z-index:3; pointer-events:none;
+}
+.isoDesk .deskTop{
+  position:absolute; left:50%; bottom:8px; width:36px; height:18px;
+  transform:translateX(-50%);
+  background:#5a3d28;
+  clip-path:polygon(50% 0%, 100% 40%, 50% 80%, 0% 40%);
+  box-shadow:0 2px 0 #3a2416;
+}
+.isoDesk .monitor{
+  position:absolute; left:50%; bottom:18px; width:12px; height:10px;
+  transform:translateX(-50%);
+  background:#4aa8f0; border:1px solid #04264d;
+  box-shadow:0 0 6px rgba(3,81,255,.55);
+  image-rendering:pixelated;
+}
+.isoDesk .legL, .isoDesk .legR{
+  position:absolute; bottom:0; width:3px; height:10px; background:#2a1a10;
+}
+.isoDesk .legL{ left:10px; }
+.isoDesk .legR{ right:10px; }
+.isoDesk.filled .deskTop{ background:#6b4a32; outline:1px solid var(--blue); }
+
+.isoProp{
+  position:absolute; transform:translate(-50%, -100%);
+  font-size:14px; z-index:4; filter:saturate(.85) contrast(1.05);
+  image-rendering:pixelated;
+}
+.isoLogoWall{
+  position:absolute; left:50%; top:18px; transform:translateX(-50%);
+  text-align:center; z-index:5; pointer-events:none;
+}
+.isoLogoWall .tag{
+  display:block; font-size:6px; color:var(--lblue); margin-top:4px; letter-spacing:1px;
+}
+
+/* Pixel chibi sprites (16-bit feel) */
+.sprite{
+  position:absolute; width:24px; height:36px;
+  transform:translate(-50%, -100%);
+  cursor:pointer; z-index:10;
+  image-rendering:pixelated;
+}
+.sprite .shadow{
+  position:absolute; bottom:-1px; left:50%; transform:translateX(-50%);
+  width:14px; height:4px; background:rgba(0,0,0,.35);
+  border-radius:50%;
+}
+.sprite .pxbody{
+  position:absolute; left:50%; bottom:2px; transform:translateX(-50%);
+  width:16px; height:28px;
+}
+.sprite .legs{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); display:flex; gap:2px; }
+.sprite .legs span{
+  display:block; width:5px; height:8px; background:#1c2733;
+  image-rendering:pixelated;
+}
+.sprite.walking .legs span:nth-child(1){ animation:legswing .28s steps(2) infinite alternate; }
+.sprite.walking .legs span:nth-child(2){ animation:legswing .28s steps(2) infinite alternate-reverse; }
+@keyframes legswing{ from{transform:translateY(0)} to{transform:translateY(2px)} }
+
+.sprite .torso{
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  width:14px; height:12px;
+}
+.sprite.role-sales .torso{ background:#1c2733; box-shadow:inset 5px 0 0 #f4f4f4; }
+.sprite.role-dev .torso{ background:#3a6fd6; }
+.sprite.role-hr .torso{ background:#d99a2b; }
+
+.sprite .head{
+  position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+  width:12px; height:12px; background:#f0c090;
+  box-shadow: inset 2px 4px 0 #1a1a1a, inset 8px 4px 0 #1a1a1a;
+}
+.sprite .hair{
+  position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+  width:14px; height:6px;
+}
+.sprite .prop{
+  position:absolute; bottom:10px; width:6px; height:6px;
+}
+.sprite.role-sales .prop{ left:-4px; background:#7a2e2e; }
+.sprite.role-dev .prop{ right:-5px; background:#dbe4ee; border:1px solid #1c2733; }
+.sprite.role-hr .prop{ right:-4px; background:#f4f4f4; border:1px solid #b9840f; }
+
+.sprite.working .torso,
+.sprite.working .head,
+.sprite.working .hair{ animation:bob .55s steps(2) infinite alternate; }
+@keyframes bob{ from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-1px)} }
+.sprite:hover{ filter:brightness(1.2); }
+
+.satbar{
+  position:absolute; top:-2px; left:50%; transform:translateX(-50%);
+  width:18px; height:3px; background:rgba(0,0,0,.4); z-index:6;
+}
+.satbar i{ display:block; height:100%; }
+
+.spriteLabel{
+  position:absolute; top:-18px; left:50%; transform:translateX(-50%); white-space:nowrap;
+  font-family:'Press Start 2P'; font-size:5px; background:rgba(10,20,30,.9); color:#fff;
+  padding:2px 3px; z-index:7; text-align:center; line-height:1.5; pointer-events:none;
+}
+.spriteLabel .st{ display:block; font-size:4px; color:#8fd6a0; }
+.spriteLabel .st.idle{ color:#9FB3C8; }
+.spriteLabel .st.low{ color:#ff9d9d; }
+
+#officeToolbar{
+  display:flex; gap:8px; justify-content:center; margin-top:10px; max-width:420px; margin-left:auto; margin-right:auto;
+}
+.toolBtn{
+  flex:1; background:var(--panel); border:2px solid var(--border); color:#cfe0f0; cursor:pointer;
+  padding:8px 4px; display:flex; flex-direction:column; align-items:center; gap:3px;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.3), inset 2px 2px 0 rgba(255,255,255,.06);
+  position:relative;
+}
+.toolBtn .ic{ font-size:14px; }
+.toolBtn .lb{ font-family:'Press Start 2P'; font-size:6px; letter-spacing:.5px; }
+.toolBtn.active{ border-color:var(--blue); color:#fff; background:#1e3252; }
+.toolBtn:disabled{ opacity:.4; cursor:not-allowed; }
+.toolBtn .badge{
+  position:absolute; top:-6px; right:-4px; background:var(--yellow); color:#111; font-size:6px;
+  font-family:'Press Start 2P'; padding:2px 3px; white-space:nowrap;
+}
+#officeHint{ text-align:center; font-size:9px; color:#5a6b7d; margin-top:8px; }
+
+#side{ flex:1; min-width:300px; display:flex; flex-direction:column; }
+#tabIntro{ font-size:10px; color:#7d93aa; padding:10px 12px 0; line-height:1.6; }
+#tabContent{ padding:12px; flex:1; overflow-y:auto; max-height:340px; }
+
+.card{
+  background:var(--panel); border:2px solid var(--border); padding:10px; margin-bottom:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.card .row1{ display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:6px; }
+.card .role-tag{ font-size:8px; font-family:'Press Start 2P'; padding:2px 6px; color:#000; }
+.tag-sales{ background:var(--green); } .tag-dev{ background:var(--lblue); } .tag-hr{ background:var(--yellow); }
+.card .val{ font-family:'Press Start 2P'; font-size:10px; color:#fff; }
+.card .progress{ height:6px; background:#0A141E; border:1px solid var(--border); margin:6px 0; }
+.card .progress i{ display:block; height:100%; background:var(--blue); }
+.card button{
+  width:100%; font-family:'Press Start 2P'; font-size:8px; padding:8px; margin-top:4px;
+  background:var(--blue); color:#fff; border:none; cursor:pointer;
+  box-shadow:inset -2px -2px 0 rgba(0,0,0,.3), inset 2px 2px 0 rgba(255,255,255,.2);
+}
+.card button:disabled{ background:#2A3D52; color:#5a6b7d; cursor:not-allowed; box-shadow:none; }
+.empty-note{ font-size:11px; color:#5a6b7d; text-align:center; padding:20px 8px; }
+
+/* ---------- MODAL ---------- */
+#modal{
+  display:none; position:absolute; inset:0; background:rgba(10,20,30,.94);
+  align-items:center; justify-content:center; padding:16px; z-index:30; overflow-y:auto;
+}
+#modalBox{
+  background:var(--panel); border:3px solid var(--blue); padding:24px; max-width:440px; width:100%;
+  text-align:center; max-height:92vh; overflow-y:auto;
+}
+#modalBox h2{ font-family:'Press Start 2P'; font-size:14px; color:var(--lblue); margin:0 0 16px; }
+#modalBox button{ margin-top:14px; }
+
+#modalBox.light{
+  background:#ffffff; border:3px solid #d8e0e8; color:#1a2530; text-align:left; max-width:760px;
+  font-family:'Space Grotesk',sans-serif;
+}
+#modalBox.light h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px; color:#111D29; margin:0; }
+.plHeader{ margin-bottom:14px; border-bottom:2px solid #eef1f4; padding-bottom:10px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
+.plMeta{ display:flex; gap:16px; font-size:11px; color:#7d93aa; }
+.plTableWrap{ overflow-x:auto; }
+.plTable{ width:100%; border-collapse:collapse; font-size:12px; min-width:520px; }
+.plTable th{ text-align:right; color:#8a99a8; font-weight:600; padding:7px 6px; border-bottom:2px solid #d8e0e8; white-space:nowrap; }
+.plTable th:first-child{ text-align:left; }
+.plTable th.empty{ color:#c5ced6; }
+.plTable td{ padding:6px; text-align:right; border-bottom:1px solid #f1f4f7; color:#33475b; white-space:nowrap; }
+.plTable td:first-child{ text-align:left; }
+.plTable td.dash{ color:#b0bac4; }
+.plTable tr.bold td{ font-weight:700; color:#111D29; }
+.plTable tr.pct td{ color:#8a99a8; font-size:11px; }
+.plTable tr.divider td{ border-bottom:2px solid #33475b; padding:0; height:0; }
+.plWarn{ color:var(--red); font-size:12px; margin-top:12px; font-weight:600; }
+.plCTA{
+  margin-top:16px; padding:16px; background:linear-gradient(135deg,#f4f7fa 0%, #eef4ff 100%);
+  border:1px solid #d8e0e8; font-size:13px; line-height:1.65; color:#33475b;
+}
+.plCTA strong{ color:#111D29; }
+.plCTA a{
+  display:inline-block; margin-top:10px; font-family:'Press Start 2P'; font-size:9px;
+  background:var(--blue); color:#fff !important; text-decoration:none; padding:12px 16px;
+  box-shadow:0 4px 0 #0233a8;
+}
+.plCTA a:hover{ transform:translateY(1px); box-shadow:0 3px 0 #0233a8; }
+.plCTA .sublink{ display:block; margin-top:10px; font-size:12px; color:var(--blue); font-weight:600; text-decoration:none; background:none; box-shadow:none; padding:0; font-family:'Space Grotesk',sans-serif; }
+
+.lbBox{ margin-top:16px; border:1px solid #d8e0e8; padding:12px; background:#fafbfc; }
+.lbBox h3{ margin:0 0 10px; font-size:14px; color:#111D29; }
+.lbForm{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.lbForm input{
+  flex:1; min-width:120px; border:1px solid #d8e0e8; padding:8px 10px; font-size:13px;
+  font-family:'Space Grotesk',sans-serif;
+}
+.lbForm button{
+  font-family:'Press Start 2P'; font-size:8px; background:var(--blue); color:#fff;
+  border:none; padding:10px 12px; cursor:pointer; margin:0 !important;
+}
+.lbTable{ width:100%; border-collapse:collapse; font-size:12px; }
+.lbTable th{ text-align:left; color:#8a99a8; padding:6px 4px; border-bottom:1px solid #eef1f4; }
+.lbTable td{ padding:6px 4px; border-bottom:1px solid #f1f4f7; color:#33475b; }
+.lbTable td.rank{ width:28px; color:#8a99a8; font-weight:700; }
+.lbTable tr.me td{ background:#eef4ff; font-weight:600; color:#111D29; }
+.lbNote{ font-size:11px; color:#8a99a8; margin-top:6px; }
+#modalBox.light button.big{ box-shadow:0 5px 0 #0233a8; }
+
+@media (max-width:720px){
+  #officeCol{ border-right:none; border-bottom:3px solid var(--border); }
+  #officeScene{ height:280px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="start">
+    <div id="startLogo"></div>
+    <h1 class="pixel">GRADE TYCOON</h1>
+    <p class="sub">Hire a team, close deals, grow the office.<br>4 quarters — then a real Grade-style P&amp;L and the leaderboard.</p>
+    <div class="company-picks" id="picks"></div>
+    <button class="big" id="startBtn" disabled>START GAME</button>
+  </div>
+
+  <div id="game">
+    <div id="hud">
+      <div class="stat">COMPANY<b id="hudCompany">—</b></div>
+      <div class="stat budget">BUDGET<b id="hudBudget">$0</b></div>
+      <div class="stat">QUARTER<b id="hudQuarter">1/4</b></div>
+      <div class="stat timer">TIME<b id="hudTimer">75</b></div>
+      <div class="stat">REVENUE (Q)<b id="hudRevenue">$0</b></div>
+      <button id="helpBtn" title="How to play">?</button>
+    </div>
+    <div id="hintBar">—</div>
+    <div id="main">
+      <div id="officeCol">
+        <div id="officeTop">
+          <div id="officeTierName">GARAGE</div>
+          <div id="officeProgress">Total revenue: $0</div>
+        </div>
+        <div id="officeSceneWrap">
+          <div id="floorCircles"></div>
+          <div id="officeScene" class="tier1">
+            <div class="sceneBadge" id="sceneBadge">Q1 · 75s</div>
+            <div id="isoWorld">
+              <div id="floorLayer"></div>
+              <div id="deskLayer"></div>
+              <div id="propLayer"></div>
+              <div id="spritesLayer"></div>
+            </div>
+            <div id="officeDecor"></div>
+          </div>
+        </div>
+        <div id="officeToolbar">
+          <button class="toolBtn active" id="toolRecruit"><span class="ic">👔</span><span class="lb">RECRUIT</span></button>
+          <button class="toolBtn" id="toolSales"><span class="ic">💼</span><span class="lb">SALES</span></button>
+          <button class="toolBtn" id="toolTasks"><span class="ic">📋</span><span class="lb">TASKS</span></button>
+          <button class="toolBtn" id="toolBuild"><span class="ic">🧱</span><span class="lb">BUILD</span><span class="badge" id="buildBadge">$1000</span></button>
+        </div>
+        <div id="officeHint">Click an employee = $300 morale bonus · isometric 16-bit office</div>
+      </div>
+      <div id="side">
+        <div id="tabIntro"></div>
+        <div id="tabContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal"><div id="modalBox"></div></div>
+</div>
+
+<script>
+/* ===================== PIXEL LOGO ===================== */
+const BITMAP_G = [
+  [0,1,1,1,1,1,1,0],
+  [1,1,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0],
+  [1,0,0,0,1,1,1,1],
+  [1,0,0,0,0,0,0,1],
+  [1,1,0,0,0,0,0,1],
+  [0,1,1,1,1,1,1,0],
+  [0,0,0,0,0,0,0,0],
+];
+function renderPixelLogo(cell){
+  let html = `<div class="pxlogo" style="grid-template-columns:repeat(8,${cell}px);">`;
+  BITMAP_G.forEach(row=>row.forEach(v=>{
+    html += `<div style="width:${cell}px;height:${cell}px;background:${v?'#0351FF':'transparent'}"></div>`;
+  }));
+  html += '</div>';
+  return html;
+}
+document.getElementById('startLogo').innerHTML = `
+  <div class="logoRow">
+    ${renderPixelLogo(9)}
+    <span class="pixel" style="font-size:20px;color:#fff;">GRADE</span>
+  </div>`;
+
+/* ===================== DATA ===================== */
+const COMPANIES = [
+  {id:'agency', ico:'🎨', name:'DESIGN AGENCY', desc:'Creative work and deadlines. Start: $15,000', budget:15000},
+  {id:'it', ico:'💻', name:'IT OUTSOURCING', desc:'Long-term contracts. Start: $20,000', budget:20000},
+  {id:'product', ico:'🚀', name:'PRODUCT STUDIO', desc:'Risky but high margin. Start: $12,000', budget:12000},
+];
+const ROLES = {
+  sales:{icon:'💼', label:'Sales', tag:'tag-sales', salaryMin:800, salaryMax:1200, help:'Closes leads in the SALES tab'},
+  dev:{icon:'💻', label:'Developer', tag:'tag-dev', salaryMin:1000, salaryMax:1500, help:'Completes projects in the TASKS tab'},
+  hr:{icon:'🤝', label:'HR', tag:'tag-hr', salaryMin:700, salaryMax:1000, help:'Slows down burnout for the whole team'},
+};
+const FIRST_NAMES = ['Alex','Nastya','Denis','Ivan','Kate','Tomas','Maria','Jakub','Olga','Petr','Nina','Sam'];
+const HAIR_COLORS = ['#3b2a1a','#151515','#8b5e2f','#c9a227','#5a3825','#7a4a2a'];
+const TAB_INTRO = {
+  recruit: "Hire people. Everyone eats a salary every quarter — don't hire more than you can afford.",
+  sales: "Leads appear on their own. Assign a free Sales rep — otherwise the deal won't close.",
+  dev: 'Closed deals become projects. Assign a Developer to get paid.',
+};
+const MAX_QUARTERS = 4;
+const QUARTER_TIME = 75;
+const GRADE_URL = 'https://grade.app';
+
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function money(n){
+  if(n==null || Number.isNaN(n)) return '—';
+  const s=n<0?'-':'';
+  return s+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function pctStr(n){
+  if(n==null || Number.isNaN(n)) return '—';
+  const s=n<0?'-':'';
+  return s+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+}
+function newCandidate(role){
+  const r = ROLES[role];
+  return { id: uid(), role, name: pick(FIRST_NAMES), salary: rand(r.salaryMin, r.salaryMax), hair: pick(HAIR_COLORS) };
+}
+
+/* ===================== ISOMETRIC MATH ===================== */
+const TILE_W = 56;
+const TILE_H = 28;
+const GRID = 4; // 4x4 floor
+function isoToScreen(gx, gy){
+  return {
+    x: (gx - gy) * (TILE_W / 2),
+    y: (gx + gy) * (TILE_H / 2),
+  };
+}
+function deskGridPos(i){
+  // Desks on inner 3x3 of the floor grid
+  const cols = 3;
+  const col = i % cols;
+  const row = Math.floor(i / cols);
+  return { gx: 0.6 + col * 1.05, gy: 0.7 + row * 1.05 };
+}
+
+/* ===================== STATE ===================== */
+let state = null;
+let tickInterval = null;
+let spriteEls = {};
+
+function initState(companyId){
+  const c = COMPANIES.find(x=>x.id===companyId);
+  return {
+    company: c, budget: c.budget, quarter: 1, maxQuarters: MAX_QUARTERS,
+    quarterTime: QUARTER_TIME, timeLeft: QUARTER_TIME, quarterRevenue: 0, quarterSalaries: 0,
+    desks: [null,null,null], deskCost: 1000, maxDesks: 9,
+    employees: [], leads: [], projects: [],
+    candidates: [newCandidate('sales'), newCandidate('dev'), newCandidate('hr')],
+    leadSpawnTimer: 4, leadSpawnEvery: 6,
+    activeTab: 'recruit', totalRevenue: 0, totalSalaries: 0, gameOver: false,
+    history: [],
+    playerName: '',
+  };
+}
+
+/* ===================== START SCREEN ===================== */
+const picksEl = document.getElementById('picks');
+let selectedCompany = null;
+COMPANIES.forEach(c=>{
+  const div = document.createElement('div');
+  div.className='pick';
+  div.innerHTML = `<div class="ico">${c.ico}</div><div class="name pixel">${c.name}</div><div class="desc">${c.desc}</div>`;
+  div.onclick = ()=>{
+    document.querySelectorAll('.pick').forEach(p=>p.classList.remove('sel'));
+    div.classList.add('sel');
+    selectedCompany = c.id;
+    document.getElementById('startBtn').disabled = false;
+  };
+  picksEl.appendChild(div);
+});
+document.getElementById('startBtn').onclick = ()=>{
+  state = initState(selectedCompany);
+  document.getElementById('start').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('hudCompany').textContent = state.company.name;
+  buildIsoFloor();
+  render();
+  showTutorial();
+};
+document.getElementById('helpBtn').onclick = showTutorial;
+
+/* ===================== TOOLBAR ===================== */
+function setActiveTab(tab){
+  state.activeTab = tab;
+  document.getElementById('toolRecruit').classList.toggle('active', tab==='recruit');
+  document.getElementById('toolSales').classList.toggle('active', tab==='sales');
+  document.getElementById('toolTasks').classList.toggle('active', tab==='dev');
+  renderSide();
+}
+document.getElementById('toolRecruit').onclick = ()=>setActiveTab('recruit');
+document.getElementById('toolSales').onclick = ()=>setActiveTab('sales');
+document.getElementById('toolTasks').onclick = ()=>setActiveTab('dev');
+document.getElementById('toolBuild').onclick = ()=>{
+  if(state.desks.length >= state.maxDesks) return;
+  if(state.budget < state.deskCost) return;
+  state.budget -= state.deskCost;
+  state.desks.push(null);
+  state.deskCost += 500;
+  render();
+};
+
+/* ===================== TUTORIAL ===================== */
+function showTutorial(){
+  clearInterval(tickInterval);
+  showModal(`
+    <h2 class="pixel" style="font-size:12px">HOW TO PLAY</h2>
+    <div style="text-align:left; font-size:11px; line-height:1.85; color:#cfe0f0;">
+      <p><b style="color:var(--lblue)">1.</b> Hire in <b>RECRUIT</b>: Sales closes deals, Developer ships projects, HR slows burnout.</p>
+      <p><b style="color:var(--lblue)">2.</b> Leads appear in <b>SALES</b> — assign a free Sales rep.</p>
+      <p><b style="color:var(--lblue)">3.</b> Closed deals become projects in <b>TASKS</b> — assign a Developer to get paid.</p>
+      <p><b style="color:var(--lblue)">4.</b> Salaries hit every quarter. Click an employee for a $300 morale bonus.</p>
+      <p><b style="color:var(--lblue)">5.</b> Survive <b>4 quarters</b>. After each one, a Grade-style P&amp;L fills another column. At the end — full report, leaderboard, and Grade.</p>
+    </div>
+    <button class="big" id="tutOk">GOT IT, START</button>
+  `);
+  document.getElementById('tutOk').onclick = ()=>{ hideModal(); startTicking(); };
+}
+
+function getHint(){
+  const salesCount = state.employees.filter(e=>e.role==='sales').length;
+  const devCount = state.employees.filter(e=>e.role==='dev').length;
+  if(salesCount===0) return 'Hire a Sales rep in RECRUIT — without one, no one can close leads';
+  if(state.leads.some(l=>l.status==='queued')) return 'New lead! Open SALES and assign it to a Sales rep';
+  if(devCount===0 && state.projects.length>0) return 'Hire a Developer in RECRUIT to complete projects';
+  if(state.projects.some(p=>p.status==='queued')) return 'A project is waiting! Open TASKS and assign a Developer';
+  if(state.employees.filter(e=>e.role==='hr').length===0 && state.employees.length>=2) return 'Tip: hire HR — they slow down burnout for the whole team';
+  if(state.employees.some(e=>e.satisfaction<30)) return 'Someone has low morale — click them for a $300 bonus';
+  return "Everything's under control. Watch budget and team morale";
+}
+
+/* ===================== GAME LOOP ===================== */
+function startTicking(){
+  if(tickInterval) clearInterval(tickInterval);
+  tickInterval = setInterval(tick, 100);
+}
+function tick(){
+  if(state.gameOver) return;
+  const dt = 0.1;
+  state.timeLeft -= dt;
+  state.leadSpawnTimer -= dt;
+
+  if(state.leadSpawnTimer <= 0){
+    state.leadSpawnTimer = state.leadSpawnEvery + Math.random()*3;
+    const value = rand(800,2200) + (state.quarter-1)*400;
+    state.leads.push({id:uid(), value, status:'queued', progress:0, duration:8, assignedEmployeeId:null});
+  }
+
+  const hasHR = state.employees.some(e=>e.role==='hr');
+  state.employees.forEach(emp=>{
+    const decay = (emp.status==='working' ? 0.22 : 0.09) * (hasHR?0.55:1) * dt;
+    emp.satisfaction -= decay;
+    if(emp.satisfaction <= 0){ emp.satisfaction = 0; quitEmployee(emp.id); }
+  });
+
+  state.leads.forEach(l=>{
+    if(l.status==='inprogress'){
+      l.progress += (100/l.duration)*dt;
+      if(l.progress>=100){
+        l.status='done';
+        const emp = state.employees.find(e=>e.id===l.assignedEmployeeId);
+        if(emp){ emp.status='idle'; emp.workId=null; }
+        state.projects.push({id:uid(), value:l.value, status:'queued', progress:0, duration:10, assignedEmployeeId:null});
+      }
+    }
+  });
+  state.leads = state.leads.filter(l=>l.status!=='done');
+
+  state.projects.forEach(p=>{
+    if(p.status==='inprogress'){
+      p.progress += (100/p.duration)*dt;
+      if(p.progress>=100){
+        p.status='done';
+        const emp = state.employees.find(e=>e.id===p.assignedEmployeeId);
+        if(emp){ emp.status='idle'; emp.workId=null; }
+        state.budget += p.value;
+        state.quarterRevenue += p.value;
+        state.totalRevenue += p.value;
+      }
+    }
+  });
+  state.projects = state.projects.filter(p=>p.status!=='done');
+
+  if(state.budget < 0){ gameOver(); return; }
+  if(state.timeLeft <= 0){ endQuarter(); return; }
+
+  render();
+}
+
+function quitEmployee(empId){
+  const emp = state.employees.find(e=>e.id===empId);
+  if(!emp) return;
+  if(emp.workId){
+    const lead = state.leads.find(l=>l.id===emp.workId);
+    if(lead){ lead.status='queued'; lead.assignedEmployeeId=null; lead.progress=0; }
+    const proj = state.projects.find(p=>p.id===emp.workId);
+    if(proj){ proj.status='queued'; proj.assignedEmployeeId=null; proj.progress=0; }
+  }
+  if(state.desks[emp.deskIndex]===emp.id) state.desks[emp.deskIndex]=null;
+  state.employees = state.employees.filter(e=>e.id!==empId);
+}
+
+/* ===================== HIRING / ASSIGNMENT ===================== */
+function hire(candidateId){
+  const idx = state.candidates.findIndex(c=>c.id===candidateId);
+  if(idx===-1) return;
+  const cand = state.candidates[idx];
+  const freeDeskIndex = state.desks.findIndex(d=>d===null);
+  if(freeDeskIndex===-1) return;
+  if(state.budget < cand.salary) return;
+  state.budget -= cand.salary;
+  const emp = { id: uid(), deskIndex: freeDeskIndex, role: cand.role, name: cand.name, salary: cand.salary, hair: cand.hair, satisfaction: 100, status:'idle', workId:null };
+  state.employees.push(emp);
+  state.desks[freeDeskIndex] = emp.id;
+  state.candidates.splice(idx,1);
+  state.candidates.push(newCandidate(pick(Object.keys(ROLES))));
+  render();
+}
+function rerollCandidates(){
+  state.candidates = [newCandidate('sales'), newCandidate('dev'), newCandidate('hr')];
+  renderSide();
+}
+function assignLead(leadId){
+  const lead = state.leads.find(l=>l.id===leadId);
+  if(!lead || lead.status!=='queued') return;
+  const emp = state.employees.find(e=>e.role==='sales' && e.status==='idle');
+  if(!emp) return;
+  lead.status='inprogress'; lead.assignedEmployeeId=emp.id;
+  emp.status='working'; emp.workId=lead.id;
+  render();
+}
+function assignProject(projId){
+  const proj = state.projects.find(p=>p.id===projId);
+  if(!proj || proj.status!=='queued') return;
+  const emp = state.employees.find(e=>e.role==='dev' && e.status==='idle');
+  if(!emp) return;
+  proj.status='inprogress'; proj.assignedEmployeeId=emp.id;
+  emp.status='working'; emp.workId=proj.id;
+  render();
+}
+function giveBonus(empId){
+  const emp = state.employees.find(e=>e.id===empId);
+  if(!emp) return;
+  const cost = 300;
+  if(state.budget < cost) return;
+  state.budget -= cost;
+  emp.satisfaction = 100;
+  render();
+}
+
+/* ===================== P&L — always 4 quarter columns ===================== */
+function quarterColumns(history, { includeTotal } = {}){
+  const cols = [];
+  for(let q=1; q<=MAX_QUARTERS; q++){
+    const h = history.find(x=>x.q===q);
+    if(h){
+      cols.push({ label:`Q${q}, $`, revenue:h.revenue, overheads:h.overheads, ebitda:h.ebitda, filled:true });
+    } else {
+      cols.push({ label:`Q${q}, $`, revenue:null, overheads:null, ebitda:null, filled:false });
+    }
+  }
+  if(includeTotal){
+    const filled = history.filter(h=>h.q>=1 && h.q<=MAX_QUARTERS);
+    if(filled.length){
+      const tr = filled.reduce((s,c)=>s+c.revenue,0);
+      const to = filled.reduce((s,c)=>s+c.overheads,0);
+      cols.push({ label:'Total, $', revenue:tr, overheads:to, ebitda:tr-to, filled:true });
+    }
+  }
+  return cols;
+}
+
+function cellMoney(v, filled){
+  if(!filled || v==null) return `<td class="dash">-</td>`;
+  return `<td>${money(v)}</td>`;
+}
+function cellPct(v, filled){
+  if(!filled || v==null) return `<td class="dash">-</td>`;
+  return `<td>${pctStr(v)}</td>`;
+}
+
+function buildPLTable(history, { includeTotal } = {}){
+  const list = quarterColumns(history, { includeTotal });
+  const head = list.map(c=>`<th class="${c.filled?'':'empty'}">${c.label}</th>`).join('');
+  const gross = list.map(c=>cellMoney(c.revenue, c.filled)).join('');
+  const grossPct = list.map(c=>{
+    if(!c.filled) return `<td class="dash">-</td>`;
+    return `<td>${c.revenue>0?'100.00%':'0.00%'}</td>`;
+  }).join('');
+  const oh = list.map(c=>cellMoney(c.filled ? -c.overheads : null, c.filled)).join('');
+  const eb = list.map(c=>cellMoney(c.ebitda, c.filled)).join('');
+  const ebPct = list.map(c=>{
+    if(!c.filled) return `<td class="dash">-</td>`;
+    return `<td>${c.revenue>0?pctStr(c.ebitda/c.revenue*100):'0.00%'}</td>`;
+  }).join('');
+  const dash = list.map(c=>`<td class="dash">-</td>`).join('');
+  const cs = list.length+1;
+  return `
+  <div class="plTableWrap">
+  <table class="plTable">
+    <thead><tr><th>Item</th>${head}</tr></thead>
+    <tbody>
+      <tr class="bold"><td>Gross Profit</td>${gross}</tr>
+      <tr class="pct"><td>Gross Profit Margin, %</td>${grossPct}</tr>
+      <tr class="divider"><td colspan="${cs}"></td></tr>
+      <tr><td>Total Overheads</td>${oh}</tr>
+      <tr><td>Total Expenses</td>${oh}</tr>
+      <tr class="divider"><td colspan="${cs}"></td></tr>
+      <tr class="bold"><td>EBITDA</td>${eb}</tr>
+      <tr class="pct"><td>EBITDA, %</td>${ebPct}</tr>
+      <tr class="divider"><td colspan="${cs}"></td></tr>
+      <tr><td>Investments</td>${dash}</tr>
+      <tr><td>Corporate Tax</td>${dash}</tr>
+      <tr><td>Credits, loans, investments</td>${dash}</tr>
+      <tr class="divider"><td colspan="${cs}"></td></tr>
+      <tr class="bold"><td>Net Profit</td>${eb}</tr>
+      <tr class="pct"><td>Net Profit, %</td>${ebPct}</tr>
+      <tr class="divider"><td colspan="${cs}"></td></tr>
+      <tr><td>Unassigned Lines</td>${dash}</tr>
+    </tbody>
+  </table>
+  </div>`;
+}
+
+function netProfitTotal(){
+  return state.history.reduce((s,h)=>s+h.ebitda,0);
+}
+
+function gradeCTA(copy){
+  return `
+    <div class="plCTA">
+      <strong>${copy}</strong><br>
+      Grade is the real dashboard for agencies &amp; IT companies — CRM, projects, HR, and live P&amp;L.
+      <br>
+      <a href="${GRADE_URL}" target="_blank" rel="noopener">Open grade.app →</a>
+      <a class="sublink" href="${GRADE_URL}" target="_blank" rel="noopener">Learn more about Grade</a>
+    </div>`;
+}
+
+/* ===================== LEADERBOARD ===================== */
+async function fetchLeaderboard(){
+  try{
+    const res = await fetch('/api/leaderboard');
+    if(!res.ok) throw new Error('fail');
+    return await res.json();
+  }catch{
+    return { entries: [], persistent:false };
+  }
+}
+
+async function submitScore(name){
+  const res = await fetch('/api/leaderboard', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      name,
+      company: state.company.name,
+      netProfit: netProfitTotal(),
+      totalRevenue: state.totalRevenue,
+    }),
+  });
+  if(!res.ok) throw new Error('submit failed');
+  return await res.json();
+}
+
+function renderLeaderboardRows(entries, highlightAt){
+  if(!entries.length) return `<tr><td colspan="4" style="color:#8a99a8;">No scores yet — be the first.</td></tr>`;
+  return entries.map((e,i)=>`
+    <tr class="${highlightAt && e.at===highlightAt ? 'me':''}">
+      <td class="rank">${i+1}</td>
+      <td>${e.name}</td>
+      <td>${e.company}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">${money(e.score)}</td>
+    </tr>`).join('');
+}
+
+function leaderboardBlock(opts={}){
+  const { submittedAt=null, entries=[], place=null, showForm=true } = opts;
+  return `
+    <div class="lbBox" id="lbBox">
+      <h3>Leaderboard</h3>
+      ${showForm ? `
+      <div class="lbForm">
+        <input id="lbName" maxlength="16" placeholder="Your name / CEO nick" value="${(state.playerName||'').replace(/"/g,'&quot;')}" />
+        <button type="button" id="lbSubmit">SUBMIT SCORE</button>
+      </div>` : (place ? `<p class="lbNote">You're #${place} on the board.</p>` : '')}
+      <table class="lbTable">
+        <thead><tr><th>#</th><th>Name</th><th>Company</th><th style="text-align:right;">Score</th></tr></thead>
+        <tbody id="lbBody">${renderLeaderboardRows(entries, submittedAt)}</tbody>
+      </table>
+      <p class="lbNote">Score = Net Profit + 15% of total revenue.</p>
+    </div>`;
+}
+
+async function wireLeaderboard(showForm){
+  const data = await fetchLeaderboard();
+  const body = document.getElementById('lbBody');
+  if(body) body.innerHTML = renderLeaderboardRows(data.entries);
+  const btn = document.getElementById('lbSubmit');
+  if(!btn || !showForm) return;
+  btn.onclick = async ()=>{
+    const input = document.getElementById('lbName');
+    const name = (input && input.value.trim()) || 'CEO';
+    state.playerName = name;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try{
+      const result = await submitScore(name);
+      const box = document.getElementById('lbBox');
+      if(box){
+        box.outerHTML = leaderboardBlock({
+          showForm:false,
+          entries: result.entries,
+          place: result.place,
+          submittedAt: result.entry.at,
+        });
+      }
+    }catch{
+      btn.disabled = false;
+      btn.textContent = 'RETRY';
+    }
+  };
+}
+
+/* ===================== QUARTER END / GAME OVER ===================== */
+function endQuarter(){
+  clearInterval(tickInterval);
+  const salaries = state.employees.reduce((s,e)=>s+e.salary,0);
+  state.budget -= salaries;
+  state.quarterSalaries = salaries;
+  state.totalSalaries += salaries;
+  const net = state.quarterRevenue - salaries;
+  state.history.push({q:state.quarter, revenue:state.quarterRevenue, overheads:salaries, ebitda:net});
+
+  const isLast = state.quarter >= state.maxQuarters;
+  const bankrupt = state.budget < 0;
+
+  showModal(`
+    <div class="plHeader">
+      <h2>Profit and Loss Statement</h2>
+      <div class="plMeta"><span>${state.company.name}</span><span>Quarter ${state.quarter} / ${state.maxQuarters}</span></div>
+    </div>
+    ${buildPLTable(state.history, { includeTotal: false })}
+    ${bankrupt ? '<p class="plWarn">Budget went negative — the company is bankrupt.</p>' : ''}
+    <p style="font-size:12px;color:#7d93aa;margin-top:10px;">Columns fill one quarter at a time — empty quarters stay as “-”.</p>
+    <button class="big" id="nextBtn">${bankrupt ? 'SEE FINAL REPORT' : (isLast ? 'FINAL REPORT' : 'NEXT QUARTER')}</button>
+  `, 'light');
+  document.getElementById('nextBtn').onclick = ()=>{
+    if(bankrupt || isLast){ finalReport(bankrupt); return; }
+    nextQuarter();
+  };
+}
+function nextQuarter(){
+  state.quarter += 1;
+  state.timeLeft = state.quarterTime;
+  state.quarterRevenue = 0;
+  state.quarterSalaries = 0;
+  state.leadSpawnEvery = Math.max(3, state.leadSpawnEvery - 0.75);
+  hideModal();
+  startTicking();
+  render();
+}
+function gameOver(){
+  clearInterval(tickInterval);
+  state.gameOver = true;
+  if(!state.history.find(h=>h.q===state.quarter)){
+    const currentSalaries = state.employees.reduce((s,e)=>s+e.salary,0);
+    state.history.push({q:state.quarter, revenue:state.quarterRevenue, overheads:currentSalaries, ebitda:state.quarterRevenue-currentSalaries});
+  }
+  finalReport(true);
+}
+async function finalReport(bankrupt){
+  state.gameOver = true;
+  clearInterval(tickInterval);
+  const titleMeta = bankrupt
+    ? `<span style="color:var(--red);font-weight:600;">BANKRUPTCY · Q${state.quarter}</span>`
+    : `<span>Annual Report · 4 quarters</span>`;
+  const ctaCopy = bankrupt
+    ? 'In a real company, moments like this show up before it’s too late.'
+    : 'You just closed the year. In Grade, this P&L updates live — by project, person, and margin.';
+
+  showModal(`
+    <div class="plHeader">
+      <h2>Profit and Loss Statement</h2>
+      <div class="plMeta"><span>${state.company.name}</span>${titleMeta}</div>
+    </div>
+    ${buildPLTable(state.history, { includeTotal: true })}
+    ${leaderboardBlock({ showForm:true, entries:[] })}
+    ${gradeCTA(ctaCopy)}
+    <button class="big" id="restartBtn">PLAY AGAIN</button>
+  `, 'light');
+  document.getElementById('restartBtn').onclick = restart;
+  await wireLeaderboard(true);
+}
+function restart(){
+  hideModal();
+  clearInterval(tickInterval);
+  document.getElementById('spritesLayer').innerHTML = '';
+  spriteEls = {};
+  document.getElementById('game').style.display='none';
+  document.getElementById('start').style.display='block';
+  document.getElementById('startBtn').disabled = true;
+  document.querySelectorAll('.pick').forEach(p=>p.classList.remove('sel'));
+  selectedCompany = null;
+  state = null;
+}
+function showModal(html, cls){
+  const box = document.getElementById('modalBox');
+  box.className = cls || '';
+  box.innerHTML = html;
+  document.getElementById('modal').style.display='flex';
+}
+function hideModal(){ document.getElementById('modal').style.display='none'; }
+
+/* ===================== ISO OFFICE ===================== */
+function buildIsoFloor(){
+  const layer = document.getElementById('floorLayer');
+  layer.innerHTML = '';
+  for(let gy=0; gy<GRID; gy++){
+    for(let gx=0; gx<GRID; gx++){
+      const p = isoToScreen(gx, gy);
+      const tile = document.createElement('div');
+      tile.className = 'isoFloor' + (((gx+gy)%2)?' alt':'');
+      tile.dataset.gx = gx; tile.dataset.gy = gy;
+      tile.style.left = p.x + 'px';
+      tile.style.top = p.y + 'px';
+      tile.style.zIndex = String(gx + gy);
+      layer.appendChild(tile);
+    }
+  }
+}
+
+function deskPos(i){
+  const g = deskGridPos(i);
+  return isoToScreen(g.gx, g.gy);
+}
+
+function renderOffice(){
+  const tier = state.totalRevenue>=15000 ? 3 : state.totalRevenue>=5000 ? 2 : 1;
+  const scene = document.getElementById('officeScene');
+  scene.className = 'tier'+tier;
+  document.getElementById('officeTierName').textContent = tier===1?'GARAGE':tier===2?'OFFICE':'GRADE HQ';
+  const nextGoal = tier===1?5000:tier===2?15000:null;
+  document.getElementById('officeProgress').textContent = nextGoal
+    ? `Total revenue: $${state.totalRevenue} (next upgrade at $${nextGoal})`
+    : `Total revenue: $${state.totalRevenue} — office fully upgraded`;
+  document.getElementById('sceneBadge').textContent = `Q${state.quarter} · ${Math.max(0,Math.ceil(state.timeLeft))}s`;
+
+  document.querySelectorAll('.isoFloor').forEach(t=>{
+    t.classList.remove('tier2','tier3');
+    if(tier===2) t.classList.add('tier2');
+    if(tier===3) t.classList.add('tier3');
+  });
+
+  const floors = document.getElementById('floorCircles');
+  floors.innerHTML = '';
+  for(let f=1; f<=3; f++){
+    const div = document.createElement('div');
+    div.className = 'floorCircle' + (f<=tier?' unlocked':'') + (f===tier?' active':'');
+    div.textContent = f;
+    floors.appendChild(div);
+  }
+
+  const props = document.getElementById('propLayer');
+  props.innerHTML = '';
+  const coffee = isoToScreen(3.2, 0.2);
+  props.innerHTML += `<div class="isoProp" style="left:${coffee.x}px;top:${coffee.y}px;z-index:8;">☕</div>`;
+  if(tier>=2){
+    const plant = isoToScreen(0.2, 3.1);
+    props.innerHTML += `<div class="isoProp" style="left:${plant.x}px;top:${plant.y}px;z-index:9;">🌿</div>`;
+  }
+  const decor = document.getElementById('officeDecor');
+  decor.innerHTML = '';
+  if(tier>=3){
+    decor.innerHTML = `<div class="isoLogoWall">${renderPixelLogo(3)}<span class="pixel tag">GRADE HQ</span></div>`;
+  }
+
+  const deskLayer = document.getElementById('deskLayer');
+  deskLayer.innerHTML = '';
+  state.desks.forEach((empId,i)=>{
+    const pos = deskPos(i);
+    const g = deskGridPos(i);
+    const div = document.createElement('div');
+    div.className = 'isoDesk'+(empId!==null?' filled':'');
+    div.style.left = pos.x+'px';
+    div.style.top = (pos.y + 6)+'px';
+    div.style.zIndex = String(Math.floor((g.gx+g.gy)*10)+5);
+    div.innerHTML = '<div class="legL"></div><div class="legR"></div><div class="deskTop"></div><div class="monitor"></div>';
+    deskLayer.appendChild(div);
+  });
+
+  syncSprites();
+
+  const buildBtn = document.getElementById('toolBuild');
+  const maxed = state.desks.length>=state.maxDesks;
+  document.getElementById('buildBadge').textContent = maxed ? 'MAX' : `$${state.deskCost}`;
+  buildBtn.disabled = maxed || state.budget<state.deskCost;
+}
+
+function syncSprites(){
+  const layer = document.getElementById('spritesLayer');
+  Object.keys(spriteEls).forEach(id=>{
+    if(!state.employees.find(e=>e.id===id)){ spriteEls[id].remove(); delete spriteEls[id]; }
+  });
+  state.employees.forEach(emp=>{
+    const pos = deskPos(emp.deskIndex);
+    emp.homeX = pos.x; emp.homeY = pos.y - 4;
+    if(!spriteEls[emp.id]){
+      const div = document.createElement('div');
+      div.className = 'sprite role-'+emp.role;
+      div.innerHTML = `
+        <div class="spriteLabel"><span class="nm">${emp.name}</span><span class="st idle">IDLE</span></div>
+        <div class="satbar"><i></i></div>
+        <div class="shadow"></div>
+        <div class="pxbody">
+          <div class="prop"></div>
+          <div class="legs"><span></span><span></span></div>
+          <div class="torso"></div>
+          <div class="head"></div>
+          <div class="hair" style="background:${emp.hair}"></div>
+        </div>`;
+      div.title = `${emp.name} (${ROLES[emp.role].label}) — click = $300 bonus`;
+      div.onclick = (ev)=>{ ev.stopPropagation(); giveBonus(emp.id); };
+      layer.appendChild(div);
+      spriteEls[emp.id] = div;
+      emp.x = emp.homeX; emp.y = emp.homeY; emp.tx = emp.homeX; emp.ty = emp.homeY;
+    }
+  });
+}
+
+/* ===================== ANIMATION ===================== */
+function updateEmployeeMovement(emp){
+  if(emp.status==='working'){
+    emp.tx = emp.homeX; emp.ty = emp.homeY;
+  } else {
+    if(!emp.nextWander || Date.now() > emp.nextWander){
+      const opts = [
+        {x:emp.homeX, y:emp.homeY},
+        isoToScreen(3.1, 0.3),
+        {x:emp.homeX+rand(-18,18), y:emp.homeY+rand(-10,10)},
+      ];
+      const t = pick(opts);
+      emp.tx = t.x;
+      emp.ty = t.y;
+      emp.nextWander = Date.now() + rand(2500,6000);
+    }
+  }
+  const dx = emp.tx-emp.x, dy = emp.ty-emp.y, dist = Math.hypot(dx,dy);
+  const speed = 0.45;
+  if(dist > 2){ emp.x += dx/dist*speed; emp.y += dy/dist*speed; emp.walking = true; }
+  else { emp.walking = false; }
+}
+function positionSprites(){
+  state.employees.forEach(emp=>{
+    const div = spriteEls[emp.id];
+    if(!div) return;
+    div.style.left = emp.x+'px';
+    div.style.top = emp.y+'px';
+    div.style.zIndex = String(20 + Math.floor(emp.y));
+    div.classList.toggle('walking', !!emp.walking);
+    div.classList.toggle('working', emp.status==='working' && !emp.walking);
+    const bar = div.querySelector('.satbar i');
+    bar.style.width = emp.satisfaction+'%';
+    bar.style.background = emp.satisfaction<30 ? 'var(--red)' : emp.satisfaction<60 ? 'var(--yellow)' : 'var(--green)';
+    const st = div.querySelector('.spriteLabel .st');
+    if(st){
+      let label = 'IDLE', cls = 'idle';
+      if(emp.status==='working') { label = emp.role==='sales' ? 'CLOSING' : 'BUILDING'; cls = ''; }
+      else if(emp.walking) { label = 'BREAK'; cls = 'idle'; }
+      if(emp.satisfaction<30){ label = 'LOW'; cls = 'low'; }
+      st.textContent = label;
+      st.className = 'st ' + cls;
+    }
+  });
+}
+function animate(){
+  if(state){
+    state.employees.forEach(updateEmployeeMovement);
+    positionSprites();
+  }
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+/* ===================== RENDER ===================== */
+function render(){
+  renderHUD();
+  renderHint();
+  renderOffice();
+  renderSide();
+}
+function renderHUD(){
+  document.getElementById('hudBudget').textContent = '$'+Math.max(0,Math.round(state.budget));
+  document.getElementById('hudBudget').parentElement.classList.toggle('neg', state.budget<0);
+  document.getElementById('hudQuarter').textContent = state.quarter+'/'+state.maxQuarters;
+  document.getElementById('hudTimer').textContent = Math.max(0,Math.ceil(state.timeLeft))+'s';
+  document.getElementById('hudRevenue').textContent = '$'+state.quarterRevenue;
+}
+function renderHint(){
+  document.getElementById('hintBar').textContent = getHint();
+}
+
+function renderSide(){
+  document.getElementById('tabIntro').textContent = TAB_INTRO[state.activeTab];
+  const el = document.getElementById('tabContent');
+  el.innerHTML = '';
+  if(state.activeTab==='recruit'){
+    const rerollBtn = document.createElement('button');
+    rerollBtn.className='card'; rerollBtn.style.cursor='pointer'; rerollBtn.style.textAlign='center';
+    rerollBtn.innerHTML = `<span style="font-size:10px; color:var(--lblue)">REFRESH CANDIDATES</span>`;
+    rerollBtn.onclick = rerollCandidates;
+    el.appendChild(rerollBtn);
+    state.candidates.forEach(c=>{
+      const r = ROLES[c.role];
+      const noRoom = state.desks.every(d=>d!==null);
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `
+        <div class="row1"><span>${r.icon} ${c.name}</span><span class="role-tag ${r.tag}">${r.label}</span></div>
+        <div style="font-size:9px; color:#7d93aa; margin-bottom:6px;">${r.help}</div>
+        <div class="val">Hire: $${c.salary} <span style="font-size:9px; color:#7d93aa">(+ $${c.salary}/quarter)</span></div>
+        <button ${(state.budget<c.salary || noRoom) ? 'disabled':''}>${noRoom?'NO DESKS':'HIRE'}</button>
+      `;
+      card.querySelector('button').onclick = ()=>hire(c.id);
+      el.appendChild(card);
+    });
+  }
+  else if(state.activeTab==='sales'){
+    if(state.leads.length===0){ el.innerHTML = '<div class="empty-note">No leads yet — hang tight.</div>'; return; }
+    state.leads.forEach(l=>{
+      const idleSales = state.employees.some(e=>e.role==='sales' && e.status==='idle');
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `
+        <div class="row1"><span>Lead</span><span class="val">$${l.value}</span></div>
+        <div class="progress"><i style="width:${l.progress}%"></i></div>
+        <button ${(l.status!=='queued' || !idleSales) ? 'disabled':''}>${l.status==='inprogress' ? 'WORKING...' : (idleSales ? 'ASSIGN SALES' : 'NO SALES')}</button>
+      `;
+      if(l.status==='queued' && idleSales) card.querySelector('button').onclick = ()=>assignLead(l.id);
+      el.appendChild(card);
+    });
+  }
+  else if(state.activeTab==='dev'){
+    if(state.projects.length===0){ el.innerHTML = '<div class="empty-note">No projects yet — close a deal in Sales.</div>'; return; }
+    state.projects.forEach(p=>{
+      const idleDev = state.employees.some(e=>e.role==='dev' && e.status==='idle');
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `
+        <div class="row1"><span>Project</span><span class="val">$${p.value}</span></div>
+        <div class="progress"><i style="width:${p.progress}%; background:var(--lblue)"></i></div>
+        <button ${(p.status!=='queued' || !idleDev) ? 'disabled':''}>${p.status==='inprogress' ? 'WORKING...' : (idleDev ? 'ASSIGN DEV' : 'NO DEV')}</button>
+      `;
+      if(p.status==='queued' && idleDev) card.querySelector('button').onclick = ()=>assignProject(p.id);
+      el.appendChild(card);
+    });
+  }
+}
+</script>
+</body>
+</html>

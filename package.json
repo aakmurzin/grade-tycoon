@@ -1,0 +1,14 @@
+{
+  "name": "grade-tycoon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Grade Tycoon — isometric office sim marketing game for grade.app",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "npx serve public",
+    "deploy": "vercel --prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
