@@ -30,7 +30,7 @@ body{
 }
 .pixel{font-family:'Press Start 2P',monospace;}
 #app{
-  width:100%; max-width:1080px; background:var(--navy);
+  width:100%; max-width:1140px; background:var(--navy);
   border:4px solid var(--border); box-shadow:0 0 0 4px var(--navy2), 0 12px 0 rgba(0,0,0,.4);
   position:relative; overflow:hidden;
 }
@@ -46,7 +46,32 @@ body{
   text-shadow:3px 3px 0 var(--blue);
 }
 #start p.sub{ font-size:11px; line-height:1.9; color:#9FB3C8; margin-bottom:26px; }
-.company-picks{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:26px; }
+.company-picks{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+.startForm{
+  max-width:420px; margin:0 auto 22px; text-align:left;
+  display:flex; flex-direction:column; gap:10px;
+}
+.startForm label{
+  display:block; font-family:'Press Start 2P'; font-size:7px; color:#9FB3C8; margin-bottom:6px;
+}
+.startForm input{
+  width:100%; background:var(--panel); border:2px solid var(--border); color:#fff;
+  padding:10px 12px; font-family:'Space Grotesk',sans-serif; font-size:14px;
+}
+.startForm input:focus{ outline:none; border-color:var(--blue); }
+.startForm .hint{ font-size:11px; color:#5a6b7d; margin-top:4px; }
+#startLeaderboard{
+  margin:28px auto 0; max-width:520px; text-align:left;
+  background:var(--panel); border:2px solid var(--border); padding:14px 16px;
+}
+#startLeaderboard h3{
+  font-family:'Press Start 2P'; font-size:9px; color:var(--lblue); margin:0 0 12px; text-align:center;
+}
+#startLeaderboard .lbTable{ width:100%; border-collapse:collapse; font-size:12px; }
+#startLeaderboard .lbTable th{ text-align:left; color:#7d93aa; padding:6px 4px; border-bottom:1px solid var(--border); font-size:10px; }
+#startLeaderboard .lbTable td{ padding:6px 4px; border-bottom:1px solid rgba(42,61,82,.6); color:#cfe0f0; }
+#startLeaderboard .lbTable td.rank{ width:28px; color:#8a99a8; font-weight:700; }
+#startLeaderboard .lbNote{ font-size:10px; color:#5a6b7d; margin:8px 0 0; text-align:center; }
 .pick{
   background:var(--panel); border:3px solid var(--border); padding:16px; width:190px; cursor:pointer;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset -2px -2px 0 rgba(0,0,0,.35);
@@ -95,7 +120,7 @@ button.ghost:hover{ border-color:var(--blue); }
 }
 
 #main{ display:flex; flex-wrap:wrap; }
-#officeCol{ flex:1.25; min-width:360px; padding:14px; border-right:3px solid var(--border); }
+#officeCol{ flex:1.4; min-width:420px; padding:14px; border-right:3px solid var(--border); }
 #officeTop{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 #officeTierName{ font-family:'Press Start 2P'; font-size:9px; color:var(--lblue); }
 #officeProgress{ font-size:10px; color:#7d93aa; }
@@ -110,151 +135,178 @@ button.ghost:hover{ border-color:var(--blue); }
 .floorCircle.unlocked{ color:#cfe0f0; border-color:var(--lblue); }
 .floorCircle.active{ background:var(--blue); border-color:var(--lblue); color:#fff; }
 
-/* ---- ISOMETRIC OFFICE ---- */
+/* ---- ISOMETRIC OFFICE (Startup Company proportions) ---- */
 #officeScene{
-  position:relative; width:100%; max-width:420px; height:320px; margin:0 auto;
+  position:relative; width:100%; max-width:640px; height:500px; margin:0 auto;
   border:3px solid var(--border); overflow:hidden;
   background:
-    linear-gradient(180deg, #2a3a4e 0%, #1e2d3e 38%, transparent 38%),
-    #0e1620;
-  box-shadow:inset 0 0 40px rgba(0,0,0,.35);
+    linear-gradient(180deg, #c5d6ea 0%, #9eb6d0 22%, #6a849c 22%, #4a6078 100%);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.25);
 }
-#officeScene.tier2{ border-color:#4a7a5a; }
-#officeScene.tier3{ border-color:var(--blue); box-shadow:inset 0 0 28px rgba(3,81,255,.25); }
+#officeScene.tier2{
+  border-color:#4a7a5a;
+  background: linear-gradient(180deg, #cfe5d4 0%, #a8cbb4 22%, #6a849c 22%, #4a6078 100%);
+}
+#officeScene.tier3{
+  border-color:var(--blue);
+  box-shadow:inset 0 0 28px rgba(3,81,255,.2);
+  background: linear-gradient(180deg, #d6e6ff 0%, #b4ccf0 22%, #6a849c 22%, #4a6078 100%);
+}
 .sceneBadge{
-  position:absolute; top:6px; left:8px; z-index:20; background:rgba(10,20,30,.85); color:#fff;
+  position:absolute; top:6px; left:8px; z-index:40; background:rgba(10,20,30,.85); color:#fff;
   font-family:'Press Start 2P'; font-size:7px; padding:4px 6px; letter-spacing:.5px;
 }
 #isoWorld{
-  position:absolute; left:50%; top:52%; width:0; height:0;
+  position:absolute; left:50%; top:56%; width:0; height:0;
   transform:translate(-50%, -50%);
+  transform-origin:center center;
   z-index:2;
 }
+/* Layer stacking: walls always behind people/furniture */
+#wallLayer{ position:absolute; left:0; top:0; z-index:1; pointer-events:none; }
+#floorLayer{ position:absolute; left:0; top:0; z-index:2; pointer-events:none; }
+#deskLayer, #propLayer, #spritesLayer{
+  position:absolute; left:0; top:0; z-index:10; isolation:isolate;
+}
 .isoFloor{
-  position:absolute; width:56px; height:28px;
+  position:absolute; width:50px; height:26px;
   transform:translate(-50%, -50%);
-  background:#8fa3b8;
+  background-color:#c6c9ce;
+  background-image:url('assets/tiles/tile_t1_sm.png?v=7');
+  background-size:100% 100%; background-position:center; background-repeat:no-repeat;
   clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
+  image-rendering:pixelated;
   z-index:0;
 }
-.isoFloor.alt{ background:#7d92a8; }
-.isoFloor.tier2{ background:#8fb89a; }
-.isoFloor.tier2.alt{ background:#7aa688; }
-.isoFloor.tier3{ background:#7ea8e0; }
-.isoFloor.tier3.alt{ background:#6b96d4; }
+.isoFloor.alt{ filter:brightness(.93); }
+.isoFloor.tier2{
+  background-image:url('assets/tiles/tile_t2_sm.png?v=7');
+  background-color:#c8d4a8;
+}
+.isoFloor.tier3{
+  background-image:url('assets/tiles/tile_t3_sm.png?v=7');
+  background-color:#a8c4e8;
+}
 
-.isoDesk{
-  position:absolute; width:40px; height:28px;
+/* Back walls — iso edge segments (mirrored pair for N vs W) */
+.isoWallSeg{
+  position:absolute;
   transform:translate(-50%, -100%);
+  pointer-events:none;
+  line-height:0;
+  image-rendering:pixelated;
+  z-index:1;
+}
+.isoWallSeg img{
+  display:block;
+  height:48px;
+  width:auto;
+  max-width:42px;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
+.isoWallSeg.corner img{
+  height:50px;
+  max-width:44px;
+  opacity:0.98;
+}
+
+/* Desk */
+.isoDesk{
+  position:absolute; width:56px; height:56px;
+  transform:translate(-50%, -78%);
   z-index:3; pointer-events:none;
-}
-.isoDesk .deskTop{
-  position:absolute; left:50%; bottom:8px; width:36px; height:18px;
-  transform:translateX(-50%);
-  background:#5a3d28;
-  clip-path:polygon(50% 0%, 100% 40%, 50% 80%, 0% 40%);
-  box-shadow:0 2px 0 #3a2416;
-}
-.isoDesk .monitor{
-  position:absolute; left:50%; bottom:18px; width:12px; height:10px;
-  transform:translateX(-50%);
-  background:#4aa8f0; border:1px solid #04264d;
-  box-shadow:0 0 6px rgba(3,81,255,.55);
   image-rendering:pixelated;
 }
-.isoDesk .legL, .isoDesk .legR{
-  position:absolute; bottom:0; width:3px; height:10px; background:#2a1a10;
+.isoDesk img{
+  width:56px; height:auto; display:block;
+  image-rendering:pixelated;
+  /* no drop-shadow — with pixelated rendering it becomes dashed streak artifacts */
 }
-.isoDesk .legL{ left:10px; }
-.isoDesk .legR{ right:10px; }
-.isoDesk.filled .deskTop{ background:#6b4a32; outline:1px solid var(--blue); }
+.isoDesk.filled img{ filter:brightness(1.06); }
+.isoDesk.filled::after{
+  content:''; position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+  width:28px; height:3px; background:rgba(3,81,255,.55); border-radius:1px;
+  pointer-events:none;
+}
 
 .isoProp{
   position:absolute; transform:translate(-50%, -100%);
-  font-size:14px; z-index:4; filter:saturate(.85) contrast(1.05);
-  image-rendering:pixelated;
+  z-index:4; image-rendering:pixelated; line-height:0;
+}
+.isoProp img{
+  display:block; image-rendering:pixelated;
+}
+.isoProp.plant img{ width:40px; height:auto; }
+.isoProp.coffee img{ width:52px; height:auto; }
+.isoProp.conference img{ width:96px; height:auto; }
+.isoProp.partition{
+  width:22px; height:20px;
+  background:rgba(110, 190, 200, .55);
+  border:1px solid rgba(255,255,255,.35);
+  clip-path:polygon(50% 0%, 100% 30%, 100% 100%, 50% 70%, 0 100%, 0 30%);
 }
 .isoLogoWall{
-  position:absolute; left:50%; top:18px; transform:translateX(-50%);
+  position:absolute; left:50%; top:8px; transform:translateX(-50%);
   text-align:center; z-index:5; pointer-events:none;
 }
+.isoLogoWall img{ width:36px; height:auto; image-rendering:pixelated; display:block; margin:0 auto; }
 .isoLogoWall .tag{
-  display:block; font-size:6px; color:var(--lblue); margin-top:4px; letter-spacing:1px;
+  display:block; font-size:6px; color:var(--blue); margin-top:4px; letter-spacing:1px;
 }
 
-/* Pixel chibi sprites (16-bit feel) */
+/* Characters — ~70% of desk height */
 .sprite{
-  position:absolute; width:24px; height:36px;
+  position:absolute; width:34px; height:46px;
   transform:translate(-50%, -100%);
   cursor:pointer; z-index:10;
   image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  overflow:visible;
 }
 .sprite .shadow{
   position:absolute; bottom:-1px; left:50%; transform:translateX(-50%);
-  width:14px; height:4px; background:rgba(0,0,0,.35);
+  width:16px; height:4px; background:rgba(0,0,0,.32);
   border-radius:50%;
 }
-.sprite .pxbody{
-  position:absolute; left:50%; bottom:2px; transform:translateX(-50%);
-  width:16px; height:28px;
-}
-.sprite .legs{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); display:flex; gap:2px; }
-.sprite .legs span{
-  display:block; width:5px; height:8px; background:#1c2733;
+.sprite .sprImg{
+  position:absolute; left:50%; bottom:1px; transform:translateX(-50%);
+  width:32px !important; height:44px !important;
+  object-fit:contain;
+  object-position:bottom center;
   image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  -ms-interpolation-mode:nearest-neighbor;
+  display:block;
+  filter:none;
 }
-.sprite.walking .legs span:nth-child(1){ animation:legswing .28s steps(2) infinite alternate; }
-.sprite.walking .legs span:nth-child(2){ animation:legswing .28s steps(2) infinite alternate-reverse; }
-@keyframes legswing{ from{transform:translateY(0)} to{transform:translateY(2px)} }
+.sprite .pxbody,
+.sprite .legs,
+.sprite .torso,
+.sprite .head,
+.sprite .hair,
+.sprite .prop{ display:none; }
 
-.sprite .torso{
-  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
-  width:14px; height:12px;
-}
-.sprite.role-sales .torso{ background:#1c2733; box-shadow:inset 5px 0 0 #f4f4f4; }
-.sprite.role-dev .torso{ background:#3a6fd6; }
-.sprite.role-hr .torso{ background:#d99a2b; }
-
-.sprite .head{
-  position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
-  width:12px; height:12px; background:#f0c090;
-  box-shadow: inset 2px 4px 0 #1a1a1a, inset 8px 4px 0 #1a1a1a;
-}
-.sprite .hair{
-  position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
-  width:14px; height:6px;
-}
-.sprite .prop{
-  position:absolute; bottom:10px; width:6px; height:6px;
-}
-.sprite.role-sales .prop{ left:-4px; background:#7a2e2e; }
-.sprite.role-dev .prop{ right:-5px; background:#dbe4ee; border:1px solid #1c2733; }
-.sprite.role-hr .prop{ right:-4px; background:#f4f4f4; border:1px solid #b9840f; }
-
-.sprite.working .torso,
-.sprite.working .head,
-.sprite.working .hair{ animation:bob .55s steps(2) infinite alternate; }
-@keyframes bob{ from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-1px)} }
-.sprite:hover{ filter:brightness(1.2); }
+.sprite:hover{ filter:brightness(1.12); }
 
 .satbar{
-  position:absolute; top:-2px; left:50%; transform:translateX(-50%);
-  width:18px; height:3px; background:rgba(0,0,0,.4); z-index:6;
+  position:absolute; top:-1px; left:50%; transform:translateX(-50%);
+  width:16px; height:2px; background:rgba(0,0,0,.4); z-index:6;
 }
 .satbar i{ display:block; height:100%; }
 
 .spriteLabel{
   position:absolute; top:-18px; left:50%; transform:translateX(-50%); white-space:nowrap;
-  font-family:'Press Start 2P'; font-size:5px; background:rgba(10,20,30,.9); color:#fff;
-  padding:2px 3px; z-index:7; text-align:center; line-height:1.5; pointer-events:none;
+  font-family:'Press Start 2P'; font-size:5px; background:rgba(10,20,30,.92); color:#fff;
+  padding:2px 4px; z-index:7; text-align:center; line-height:1.45; pointer-events:none;
+  box-shadow:0 1px 0 rgba(0,0,0,.35);
 }
 .spriteLabel .st{ display:block; font-size:4px; color:#8fd6a0; }
 .spriteLabel .st.idle{ color:#9FB3C8; }
 .spriteLabel .st.low{ color:#ff9d9d; }
 
 #officeToolbar{
-  display:flex; gap:8px; justify-content:center; margin-top:10px; max-width:420px; margin-left:auto; margin-right:auto;
+  display:flex; gap:8px; justify-content:center; margin-top:10px; max-width:620px; margin-left:auto; margin-right:auto;
 }
 .toolBtn{
   flex:1; background:var(--panel); border:2px solid var(--border); color:#cfe0f0; cursor:pointer;
@@ -338,6 +390,32 @@ button.ghost:hover{ border-color:var(--blue); }
 .plCTA a:hover{ transform:translateY(1px); box-shadow:0 3px 0 #0233a8; }
 .plCTA .sublink{ display:block; margin-top:10px; font-size:12px; color:var(--blue); font-weight:600; text-decoration:none; background:none; box-shadow:none; padding:0; font-family:'Space Grotesk',sans-serif; }
 
+.shareBox{
+  margin-top:16px; padding:14px; border:1px solid #d8e0e8; background:#f7f9fc;
+}
+.shareBox h3{ margin:0 0 6px; font-size:14px; color:#111D29; }
+.shareBox .shareHint{ font-size:12px; color:#7d93aa; margin:0 0 12px; line-height:1.45; }
+.shareRow{ display:flex; flex-wrap:wrap; gap:8px; }
+.shareBtn{
+  font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600;
+  border:1px solid #d8e0e8; background:#fff; color:#111D29;
+  padding:9px 12px; cursor:pointer; margin:0 !important; border-radius:0;
+}
+.shareBtn:hover{ border-color:var(--blue); color:var(--blue); }
+.shareBtn.primary{
+  background:var(--blue); color:#fff; border-color:var(--blue);
+  font-family:'Press Start 2P'; font-size:8px; padding:11px 14px;
+}
+.shareBtn.primary:hover{ filter:brightness(1.06); color:#fff; }
+.shareStatus{ font-size:11px; color:#7d93aa; margin-top:8px; min-height:16px; }
+.gradeFooter{
+  margin-top:20px; padding-top:14px; border-top:1px solid #eef1f4;
+  display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+}
+.gradeFooter img{ height:44px; width:auto; display:block; image-rendering:auto; }
+.gradeFooter a{ font-size:12px; color:#8a99a8; text-decoration:none; font-weight:600; }
+.gradeFooter a:hover{ color:var(--blue); }
+
 .lbBox{ margin-top:16px; border:1px solid #d8e0e8; padding:12px; background:#fafbfc; }
 .lbBox h3{ margin:0 0 10px; font-size:14px; color:#111D29; }
 .lbForm{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
@@ -359,7 +437,7 @@ button.ghost:hover{ border-color:var(--blue); }
 
 @media (max-width:720px){
   #officeCol{ border-right:none; border-bottom:3px solid var(--border); }
-  #officeScene{ height:280px; }
+  #officeScene{ height:400px; max-width:100%; }
 }
 </style>
 </head>
@@ -371,7 +449,26 @@ button.ghost:hover{ border-color:var(--blue); }
     <h1 class="pixel">GRADE TYCOON</h1>
     <p class="sub">Hire a team, close deals, grow the office.<br>4 quarters — then a real Grade-style P&amp;L and the leaderboard.</p>
     <div class="company-picks" id="picks"></div>
+    <div class="startForm">
+      <div>
+        <label for="companyName">Company name</label>
+        <input id="companyName" maxlength="28" placeholder="e.g. Northwind Studio" autocomplete="organization" />
+      </div>
+      <div>
+        <label for="playerEmail">Email <span style="color:#5a6b7d">(optional)</span></label>
+        <input id="playerEmail" type="email" maxlength="64" placeholder="you@company.com" autocomplete="email" />
+        <div class="hint">We may follow up about Grade — never spam.</div>
+      </div>
+    </div>
     <button class="big" id="startBtn" disabled>START GAME</button>
+    <div id="startLeaderboard">
+      <h3>TOP 10 LEADERBOARD</h3>
+      <table class="lbTable">
+        <thead><tr><th>#</th><th>CEO</th><th>Company</th><th style="text-align:right;">Score</th></tr></thead>
+        <tbody id="startLbBody"><tr><td colspan="4" style="color:#5a6b7d;text-align:center;">Loading…</td></tr></tbody>
+      </table>
+      <p class="lbNote">Survive 4 quarters · Score = Net Profit + 15% revenue</p>
+    </div>
   </div>
 
   <div id="game">
@@ -395,6 +492,7 @@ button.ghost:hover{ border-color:var(--blue); }
           <div id="officeScene" class="tier1">
             <div class="sceneBadge" id="sceneBadge">Q1 · 75s</div>
             <div id="isoWorld">
+              <div id="wallLayer"></div>
               <div id="floorLayer"></div>
               <div id="deskLayer"></div>
               <div id="propLayer"></div>
@@ -409,7 +507,7 @@ button.ghost:hover{ border-color:var(--blue); }
           <button class="toolBtn" id="toolTasks"><span class="ic">📋</span><span class="lb">TASKS</span></button>
           <button class="toolBtn" id="toolBuild"><span class="ic">🧱</span><span class="lb">BUILD</span><span class="badge" id="buildBadge">$1000</span></button>
         </div>
-        <div id="officeHint">Click an employee = $300 morale bonus · isometric 16-bit office</div>
+        <div id="officeHint">Click an employee = $300 morale bonus</div>
       </div>
       <div id="side">
         <div id="tabIntro"></div>
@@ -443,7 +541,7 @@ function renderPixelLogo(cell){
 }
 document.getElementById('startLogo').innerHTML = `
   <div class="logoRow">
-    ${renderPixelLogo(9)}
+    <img src="assets/ui/pixel_g_sm.png" alt="G" width="48" height="48" style="image-rendering:pixelated;width:48px;height:auto;">
     <span class="pixel" style="font-size:20px;color:#fff;">GRADE</span>
   </div>`;
 
@@ -468,6 +566,10 @@ const TAB_INTRO = {
 const MAX_QUARTERS = 4;
 const QUARTER_TIME = 75;
 const GRADE_URL = 'https://grade.app';
+function gameUrl(){
+  try{ return window.location.origin + (window.location.pathname || '/'); }
+  catch{ return 'https://grade.app'; }
+}
 
 function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -488,46 +590,109 @@ function newCandidate(role){
 }
 
 /* ===================== ISOMETRIC MATH ===================== */
-const TILE_W = 56;
-const TILE_H = 28;
-const GRID = 4; // 4x4 floor
+const TILE_W = 48;
+const TILE_H = 24;
+const ASSET = {
+  desk: 'assets/furniture/desk_sm.png?v=10',
+  coffee: 'assets/furniture/coffee_sm.png?v=10',
+  plant: 'assets/furniture/plant_sm.png?v=9',
+  conference: 'assets/furniture/conference_sm.png?v=10',
+  wallN: 'assets/tiles/wall_n_sm.png?v=10',
+  wallW: 'assets/tiles/wall_w_sm.png?v=10',
+  wallWindow: 'assets/tiles/wall_window_sm.png?v=10',
+  logo: 'assets/ui/pixel_g_sm.png',
+  gradeLogo: 'assets/ui/grade_logo_sm.png?v=8',
+};
+/** Office expands with revenue: more floor tiles + more desk capacity */
+const OFFICE_TIERS = [
+  { id:1, name:'GARAGE',   revenue:0,     grid:12, maxDesks:6,  scale:0.78 },
+  { id:2, name:'OFFICE',   revenue:5000,  grid:16, maxDesks:9,  scale:0.58 },
+  { id:3, name:'GRADE HQ', revenue:15000, grid:20, maxDesks:12, scale:0.46 },
+];
+function officeTierFor(revenue){
+  let t = OFFICE_TIERS[0];
+  for(const x of OFFICE_TIERS){ if(revenue >= x.revenue) t = x; }
+  return t;
+}
+function charFrame(role, kind){
+  // cache-bust so refreshed sprites load after re-extract
+  return `assets/chars/${role}_${kind}_sm.png?v=8`;
+}
 function isoToScreen(gx, gy){
   return {
     x: (gx - gy) * (TILE_W / 2),
     y: (gx + gy) * (TILE_H / 2),
   };
 }
+/** Desk pods — deeper into the floor so people aren't at the north tip */
+function makeDeskSlots(grid){
+  const cols = 3, rows = 4;
+  const pitchX = Math.min(3.4, Math.max(2.6, (grid - 6) / Math.max(1, cols - 1)));
+  const pitchY = Math.min(3.2, Math.max(2.5, (grid - 6) / Math.max(1, rows - 1)));
+  const startX = 3.2;
+  const startY = 3.4;
+  const slots = [];
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      slots.push({
+        gx: startX + c * pitchX,
+        gy: startY + r * pitchY,
+      });
+    }
+  }
+  return slots;
+}
 function deskGridPos(i){
-  // Desks on inner 3x3 of the floor grid
-  const cols = 3;
-  const col = i % cols;
-  const row = Math.floor(i / cols);
-  return { gx: 0.6 + col * 1.05, gy: 0.7 + row * 1.05 };
+  const grid = state?.officeGrid || 12;
+  const slots = makeDeskSlots(grid);
+  const idx = Math.max(0, Math.min(Number(i) || 0, slots.length - 1));
+  return slots[idx] || { gx: 4, gy: 4 };
+}
+/** Feet just in front of the desk toward the camera */
+function seatOffset(g){
+  return { gx: g.gx + 0.05, gy: g.gy + 0.75 };
+}
+function depthZ(gx, gy, bias){
+  return Math.floor((gx + gy) * 20) + (bias || 0);
 }
 
 /* ===================== STATE ===================== */
 let state = null;
 let tickInterval = null;
 let spriteEls = {};
+let deskEls = [];
+let desksDirty = true;
+let propsDirty = true;
+let sideAcc = 0;
 
 function initState(companyId){
   const c = COMPANIES.find(x=>x.id===companyId);
+  const tier = officeTierFor(0);
+  const customName = (document.getElementById('companyName')?.value || '').trim();
+  const email = (document.getElementById('playerEmail')?.value || '').trim();
   return {
-    company: c, budget: c.budget, quarter: 1, maxQuarters: MAX_QUARTERS,
+    company: { ...c, name: customName || c.name, templateName: c.name },
+    budget: c.budget, quarter: 1, maxQuarters: MAX_QUARTERS,
     quarterTime: QUARTER_TIME, timeLeft: QUARTER_TIME, quarterRevenue: 0, quarterSalaries: 0,
-    desks: [null,null,null], deskCost: 1000, maxDesks: 9,
+    desks: [null,null,null], deskCost: 1000, maxDesks: tier.maxDesks,
+    officeGrid: tier.grid, officeTier: tier.id, officeScale: tier.scale,
     employees: [], leads: [], projects: [],
     candidates: [newCandidate('sales'), newCandidate('dev'), newCandidate('hr')],
     leadSpawnTimer: 4, leadSpawnEvery: 6,
     activeTab: 'recruit', totalRevenue: 0, totalSalaries: 0, gameOver: false,
     history: [],
     playerName: '',
+    playerEmail: email,
   };
 }
 
 /* ===================== START SCREEN ===================== */
 const picksEl = document.getElementById('picks');
 let selectedCompany = null;
+function refreshStartBtn(){
+  const nameOk = (document.getElementById('companyName')?.value || '').trim().length >= 2;
+  document.getElementById('startBtn').disabled = !(selectedCompany && nameOk);
+}
 COMPANIES.forEach(c=>{
   const div = document.createElement('div');
   div.className='pick';
@@ -536,20 +701,28 @@ COMPANIES.forEach(c=>{
     document.querySelectorAll('.pick').forEach(p=>p.classList.remove('sel'));
     div.classList.add('sel');
     selectedCompany = c.id;
-    document.getElementById('startBtn').disabled = false;
+    const nameInput = document.getElementById('companyName');
+    if(nameInput && !nameInput.value.trim()){
+      nameInput.placeholder = c.name.replace(/\s+/g,' ') + ' Inc.';
+    }
+    refreshStartBtn();
   };
   picksEl.appendChild(div);
 });
+document.getElementById('companyName').addEventListener('input', refreshStartBtn);
 document.getElementById('startBtn').onclick = ()=>{
   state = initState(selectedCompany);
   document.getElementById('start').style.display='none';
   document.getElementById('game').style.display='block';
   document.getElementById('hudCompany').textContent = state.company.name;
+  desksDirty = true; propsDirty = true;
   buildIsoFloor();
-  render();
+  render(true);
   showTutorial();
 };
 document.getElementById('helpBtn').onclick = showTutorial;
+
+/* leaderboard on start screen loaded after API helpers exist */
 
 /* ===================== TOOLBAR ===================== */
 function setActiveTab(tab){
@@ -568,7 +741,8 @@ document.getElementById('toolBuild').onclick = ()=>{
   state.budget -= state.deskCost;
   state.desks.push(null);
   state.deskCost += 500;
-  render();
+  desksDirty = true;
+  render(true);
 };
 
 /* ===================== TUTORIAL ===================== */
@@ -580,8 +754,8 @@ function showTutorial(){
       <p><b style="color:var(--lblue)">1.</b> Hire in <b>RECRUIT</b>: Sales closes deals, Developer ships projects, HR slows burnout.</p>
       <p><b style="color:var(--lblue)">2.</b> Leads appear in <b>SALES</b> — assign a free Sales rep.</p>
       <p><b style="color:var(--lblue)">3.</b> Closed deals become projects in <b>TASKS</b> — assign a Developer to get paid.</p>
-      <p><b style="color:var(--lblue)">4.</b> Salaries hit every quarter. Click an employee for a $300 morale bonus.</p>
-      <p><b style="color:var(--lblue)">5.</b> Survive <b>4 quarters</b>. After each one, a Grade-style P&amp;L fills another column. At the end — full report, leaderboard, and Grade.</p>
+      <p><b style="color:var(--lblue)">4.</b> Morale steps: without HR — 3 jobs yellow, +2 red, +1 quit. With HR — 5 / +4 / +1. Bonus ($300 click) raises one level (red→yellow→green).</p>
+      <p><b style="color:var(--lblue)">5.</b> Survive <b>4 quarters</b>. Earn revenue to expand the office floor (10×10 → 12×12 → 14×14, up to 12 desks). After each quarter a Grade-style P&amp;L fills another column.</p>
     </div>
     <button class="big" id="tutOk">GOT IT, START</button>
   `);
@@ -591,12 +765,15 @@ function showTutorial(){
 function getHint(){
   const salesCount = state.employees.filter(e=>e.role==='sales').length;
   const devCount = state.employees.filter(e=>e.role==='dev').length;
+  const hasHR = state.employees.some(e=>e.role==='hr');
   if(salesCount===0) return 'Hire a Sales rep in RECRUIT — without one, no one can close leads';
   if(state.leads.some(l=>l.status==='queued')) return 'New lead! Open SALES and assign it to a Sales rep';
   if(devCount===0 && state.projects.length>0) return 'Hire a Developer in RECRUIT to complete projects';
   if(state.projects.some(p=>p.status==='queued')) return 'A project is waiting! Open TASKS and assign a Developer';
-  if(state.employees.filter(e=>e.role==='hr').length===0 && state.employees.length>=2) return 'Tip: hire HR — they slow down burnout for the whole team';
-  if(state.employees.some(e=>e.satisfaction<30)) return 'Someone has low morale — click them for a $300 bonus';
+  if(!hasHR && state.employees.length>=2) return 'Tip: hire HR — yellow after 5 jobs (not 3), red after +4 more';
+  if(state.employees.some(e=>moraleBand(e)==='red')) return 'RED morale — one more job and they quit unless you click them for a $300 bonus';
+  if(state.employees.some(e=>moraleBand(e)==='yellow')) return 'Yellow = slower work. Bonus raises one level (yellow→green)';
+  if(state.employees.some(e=>e.needsBonus)) return 'Someone needs a bonus — click them ($300) to raise morale one level';
   return "Everything's under control. Watch budget and team morale";
 }
 
@@ -617,20 +794,22 @@ function tick(){
     state.leads.push({id:uid(), value, status:'queued', progress:0, duration:8, assignedEmployeeId:null});
   }
 
-  const hasHR = state.employees.some(e=>e.role==='hr');
+  // Morale is job-stage based (not passive decay to quit)
   state.employees.forEach(emp=>{
-    const decay = (emp.status==='working' ? 0.22 : 0.09) * (hasHR?0.55:1) * dt;
-    emp.satisfaction -= decay;
-    if(emp.satisfaction <= 0){ emp.satisfaction = 0; quitEmployee(emp.id); }
+    syncSatisfactionBar(emp);
   });
 
   state.leads.forEach(l=>{
     if(l.status==='inprogress'){
-      l.progress += (100/l.duration)*dt;
+      const emp = state.employees.find(e=>e.id===l.assignedEmployeeId);
+      const spd = workSpeed(emp);
+      l.progress += (100/l.duration) * dt * spd;
       if(l.progress>=100){
         l.status='done';
-        const emp = state.employees.find(e=>e.id===l.assignedEmployeeId);
-        if(emp){ emp.status='idle'; emp.workId=null; }
+        if(emp){
+          emp.status='idle'; emp.workId=null;
+          onJobCompleted(emp, 'lead');
+        }
         state.projects.push({id:uid(), value:l.value, status:'queued', progress:0, duration:10, assignedEmployeeId:null});
       }
     }
@@ -639,11 +818,15 @@ function tick(){
 
   state.projects.forEach(p=>{
     if(p.status==='inprogress'){
-      p.progress += (100/p.duration)*dt;
+      const emp = state.employees.find(e=>e.id===p.assignedEmployeeId);
+      const spd = workSpeed(emp);
+      p.progress += (100/p.duration) * dt * spd;
       if(p.progress>=100){
         p.status='done';
-        const emp = state.employees.find(e=>e.id===p.assignedEmployeeId);
-        if(emp){ emp.status='idle'; emp.workId=null; }
+        if(emp){
+          emp.status='idle'; emp.workId=null;
+          onJobCompleted(emp, 'task');
+        }
         state.budget += p.value;
         state.quarterRevenue += p.value;
         state.totalRevenue += p.value;
@@ -655,7 +838,7 @@ function tick(){
   if(state.budget < 0){ gameOver(); return; }
   if(state.timeLeft <= 0){ endQuarter(); return; }
 
-  render();
+  renderLight();
 }
 
 function quitEmployee(empId){
@@ -669,6 +852,62 @@ function quitEmployee(empId){
   }
   if(state.desks[emp.deskIndex]===emp.id) state.desks[emp.deskIndex]=null;
   state.employees = state.employees.filter(e=>e.id!==empId);
+  desksDirty = true;
+}
+
+/**
+ * Morale tiers: 2 green → 1 yellow → 0 red
+ * Without HR: 3 jobs → yellow, +2 → red, +1 → quit
+ * With HR:    5 jobs → yellow, +4 → red, +1 → quit
+ * Bonus: +1 tier (red→yellow, yellow→green) and resets stage job counter
+ */
+function stageThresholds(){
+  const hr = state.employees.some(e=>e.role==='hr');
+  return hr
+    ? { toYellow: 5, toRed: 4, toQuit: 1 }
+    : { toYellow: 3, toRed: 2, toQuit: 1 };
+}
+function moraleBand(emp){
+  if(!emp) return 'green';
+  const m = emp.morale == null ? 2 : emp.morale;
+  if(m <= 0) return 'red';
+  if(m === 1) return 'yellow';
+  return 'green';
+}
+function syncSatisfactionBar(emp){
+  const band = moraleBand(emp);
+  emp.satisfaction = band === 'green' ? 100 : band === 'yellow' ? 50 : 18;
+}
+function workSpeed(emp){
+  if(!emp) return 1;
+  const band = moraleBand(emp);
+  if(band === 'yellow') return 0.55;
+  if(band === 'red') return 0.35;
+  return 1;
+}
+
+function onJobCompleted(emp, kind){
+  if(!emp || emp.role === 'hr') return;
+  if(kind === 'lead') emp.leadsDone = (emp.leadsDone || 0) + 1;
+  else emp.tasksDone = (emp.tasksDone || 0) + 1;
+
+  emp.stageJobs = (emp.stageJobs || 0) + 1;
+  if(emp.morale == null) emp.morale = 2;
+  const t = stageThresholds();
+
+  if(emp.morale === 2 && emp.stageJobs >= t.toYellow){
+    emp.morale = 1;
+    emp.stageJobs = 0;
+    emp.needsBonus = true;
+  } else if(emp.morale === 1 && emp.stageJobs >= t.toRed){
+    emp.morale = 0;
+    emp.stageJobs = 0;
+    emp.needsBonus = true;
+  } else if(emp.morale === 0 && emp.stageJobs >= t.toQuit){
+    quitEmployee(emp.id);
+    return;
+  }
+  syncSatisfactionBar(emp);
 }
 
 /* ===================== HIRING / ASSIGNMENT ===================== */
@@ -680,12 +919,20 @@ function hire(candidateId){
   if(freeDeskIndex===-1) return;
   if(state.budget < cand.salary) return;
   state.budget -= cand.salary;
-  const emp = { id: uid(), deskIndex: freeDeskIndex, role: cand.role, name: cand.name, salary: cand.salary, hair: cand.hair, satisfaction: 100, status:'idle', workId:null };
+  const seat = seatPos(freeDeskIndex);
+  const emp = {
+    id: uid(), deskIndex: freeDeskIndex, role: cand.role, name: cand.name, salary: cand.salary, hair: cand.hair,
+    satisfaction: 100, morale: 2, stageJobs: 0, status:'idle', workId:null,
+    leadsDone: 0, tasksDone: 0, needsBonus: false,
+    x: seat.x, y: seat.y, tx: seat.x, ty: seat.y, homeX: seat.x, homeY: seat.y,
+    walking: false, nextWander: Date.now() + rand(2500, 5000),
+  };
   state.employees.push(emp);
   state.desks[freeDeskIndex] = emp.id;
   state.candidates.splice(idx,1);
   state.candidates.push(newCandidate(pick(Object.keys(ROLES))));
-  render();
+  desksDirty = true;
+  render(true);
 }
 function rerollCandidates(){
   state.candidates = [newCandidate('sales'), newCandidate('dev'), newCandidate('hr')];
@@ -714,8 +961,19 @@ function giveBonus(empId){
   if(!emp) return;
   const cost = 300;
   if(state.budget < cost) return;
+  // Already green — nothing to upgrade
+  if((emp.morale == null ? 2 : emp.morale) >= 2){
+    emp.needsBonus = false;
+    syncSatisfactionBar(emp);
+    render();
+    return;
+  }
   state.budget -= cost;
-  emp.satisfaction = 100;
+  // +1 morale level: red→yellow, yellow→green
+  emp.morale = Math.min(2, (emp.morale == null ? 2 : emp.morale) + 1);
+  emp.stageJobs = 0;
+  emp.needsBonus = emp.morale < 2;
+  syncSatisfactionBar(emp);
   render();
 }
 
@@ -808,6 +1066,248 @@ function gradeCTA(copy){
     </div>`;
 }
 
+function shareBoxHtml(){
+  return `
+    <div class="shareBox" id="shareBox">
+      <h3>Share your P&amp;L</h3>
+      <p class="shareHint">Download a result card or post it with a link to the game.</p>
+      <div class="shareRow">
+        <button type="button" class="shareBtn primary" id="shareNativeBtn">SHARE</button>
+        <button type="button" class="shareBtn" id="shareDownloadBtn">Download image</button>
+        <button type="button" class="shareBtn" id="shareXBtn">X / Twitter</button>
+        <button type="button" class="shareBtn" id="shareLiBtn">LinkedIn</button>
+        <button type="button" class="shareBtn" id="shareTgBtn">Telegram</button>
+        <button type="button" class="shareBtn" id="shareCopyBtn">Copy link</button>
+      </div>
+      <div class="shareStatus" id="shareStatus"></div>
+    </div>`;
+}
+
+function gradeFooterHtml(){
+  return `
+    <div class="gradeFooter">
+      <a href="${GRADE_URL}" target="_blank" rel="noopener" title="Grade">
+        <img src="${ASSET.gradeLogo}" alt="Grade" height="44">
+      </a>
+      <a href="${GRADE_URL}" target="_blank" rel="noopener">grade.app — real P&amp;L for your company</a>
+    </div>`;
+}
+
+function shareText(){
+  const net = netProfitTotal();
+  const name = state.company?.name || 'My company';
+  const url = gameUrl();
+  return `I ran ${name} in Grade Tycoon.\nNet profit: ${money(net)}\nPlay & see the P&L: ${url}\nReal dashboards → ${GRADE_URL}`;
+}
+
+function loadImage(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/** Build a 1200×630 social card with P&L snapshot + game link */
+async function buildShareCard(){
+  const W = 1200, H = 630;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0A141E');
+  bg.addColorStop(1, '#111D29');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Accent bar
+  ctx.fillStyle = '#0351FF';
+  ctx.fillRect(0, 0, 12, H);
+
+  // Title
+  ctx.fillStyle = '#6FC1FF';
+  ctx.font = '600 28px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText('GRADE TYCOON', 48, 56);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 42px "Space Grotesk", system-ui, sans-serif';
+  const company = (state.company?.name || 'Company').slice(0, 36);
+  ctx.fillText(company, 48, 110);
+  ctx.fillStyle = '#9FB3C8';
+  ctx.font = '500 20px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText('Annual Profit & Loss', 48, 144);
+
+  // P&L columns
+  const cols = quarterColumns(state.history, { includeTotal: true });
+  const tableTop = 190;
+  const colW = 160;
+  const labelX = 48;
+  const firstCol = 280;
+
+  ctx.fillStyle = '#8a99a8';
+  ctx.font = '600 16px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText('Item', labelX, tableTop);
+  cols.forEach((c, i)=>{
+    ctx.fillStyle = c.filled ? '#cfe0f0' : '#5a6b7d';
+    ctx.fillText(c.label, firstCol + i * colW, tableTop);
+  });
+
+  const rows = [
+    { label: 'Gross Profit', key: 'revenue', bold: true },
+    { label: 'Total Overheads', key: 'overheads', neg: true },
+    { label: 'EBITDA / Net', key: 'ebitda', bold: true },
+  ];
+  rows.forEach((row, ri)=>{
+    const y = tableTop + 44 + ri * 48;
+    ctx.fillStyle = row.bold ? '#ffffff' : '#9FB3C8';
+    ctx.font = (row.bold ? '700 ' : '500 ') + '18px "Space Grotesk", system-ui, sans-serif';
+    ctx.fillText(row.label, labelX, y);
+    cols.forEach((c, i)=>{
+      let v = null;
+      if(c.filled){
+        v = row.key === 'overheads' ? -c.overheads : c[row.key];
+      }
+      const text = (v == null) ? '—' : money(v);
+      ctx.fillStyle = (!c.filled) ? '#5a6b7d' : (v != null && v < 0 ? '#ff8a8a' : '#ffffff');
+      ctx.font = (row.bold ? '700 ' : '500 ') + '18px "Space Grotesk", system-ui, sans-serif';
+      ctx.fillText(text, firstCol + i * colW, y);
+    });
+  });
+
+  // Net highlight
+  const net = netProfitTotal();
+  ctx.fillStyle = '#0351FF';
+  ctx.fillRect(48, 380, 420, 72);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 16px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText('Net profit (year)', 64, 408);
+  ctx.font = '700 32px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText(money(net), 64, 442);
+
+  // Links
+  const url = gameUrl();
+  ctx.fillStyle = '#9FB3C8';
+  ctx.font = '500 18px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText('Play the game:', 48, 500);
+  ctx.fillStyle = '#6FC1FF';
+  ctx.font = '600 20px "Space Grotesk", system-ui, sans-serif';
+  ctx.fillText(url, 48, 530);
+
+  // Grade logo bottom-right
+  try{
+    const logo = await loadImage('assets/ui/grade_logo.png?v=8');
+    const lh = 88;
+    const lw = logo.width * (lh / logo.height);
+    ctx.drawImage(logo, W - lw - 40, H - lh - 28, lw, lh);
+  }catch{
+    ctx.fillStyle = '#0351FF';
+    ctx.font = '700 22px "Space Grotesk", system-ui, sans-serif';
+    ctx.fillText('GRADE', W - 140, H - 48);
+  }
+
+  return canvas;
+}
+
+async function shareCardBlob(){
+  const canvas = await buildShareCard();
+  return await new Promise((resolve, reject)=>{
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('blob failed')), 'image/png');
+  });
+}
+
+function setShareStatus(msg){
+  const el = document.getElementById('shareStatus');
+  if(el) el.textContent = msg || '';
+}
+
+function wireShareButtons(){
+  const nativeBtn = document.getElementById('shareNativeBtn');
+  const dlBtn = document.getElementById('shareDownloadBtn');
+  const xBtn = document.getElementById('shareXBtn');
+  const liBtn = document.getElementById('shareLiBtn');
+  const tgBtn = document.getElementById('shareTgBtn');
+  const copyBtn = document.getElementById('shareCopyBtn');
+  if(!nativeBtn) return;
+
+  const text = ()=>shareText();
+  const url = ()=>gameUrl();
+
+  nativeBtn.onclick = async ()=>{
+    setShareStatus('Preparing card…');
+    try{
+      const blob = await shareCardBlob();
+      const file = new File([blob], 'grade-tycoon-pnl.png', { type: 'image/png' });
+      if(navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))){
+        await navigator.share({
+          title: 'Grade Tycoon — my P&L',
+          text: text(),
+          url: url(),
+          files: [file],
+        });
+        setShareStatus('Shared.');
+        return;
+      }
+      if(navigator.share){
+        await navigator.share({ title: 'Grade Tycoon — my P&L', text: text(), url: url() });
+        setShareStatus('Shared.');
+        return;
+      }
+      // Fallback: download image
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'grade-tycoon-pnl.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setShareStatus('Image downloaded — attach it in your post.');
+    }catch(err){
+      if(err && err.name === 'AbortError'){ setShareStatus(''); return; }
+      setShareStatus('Could not share — try Download image.');
+    }
+  };
+
+  dlBtn.onclick = async ()=>{
+    setShareStatus('Rendering…');
+    try{
+      const blob = await shareCardBlob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'grade-tycoon-pnl.png';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setShareStatus('Saved grade-tycoon-pnl.png');
+    }catch{
+      setShareStatus('Download failed.');
+    }
+  };
+
+  xBtn.onclick = ()=>{
+    const u = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text())}`;
+    window.open(u, '_blank', 'noopener,width=600,height=500');
+    setShareStatus('Opened X — attach the downloaded image for best results.');
+  };
+  liBtn.onclick = ()=>{
+    const u = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url())}`;
+    window.open(u, '_blank', 'noopener,width=600,height=600');
+    setShareStatus('Opened LinkedIn — paste your P&L numbers or attach the image.');
+  };
+  tgBtn.onclick = ()=>{
+    const u = `https://t.me/share/url?url=${encodeURIComponent(url())}&text=${encodeURIComponent(text())}`;
+    window.open(u, '_blank', 'noopener');
+    setShareStatus('Opened Telegram.');
+  };
+  copyBtn.onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText(text());
+      setShareStatus('Copied result + link to clipboard.');
+    }catch{
+      setShareStatus(url());
+    }
+  };
+}
+
 /* ===================== LEADERBOARD ===================== */
 async function fetchLeaderboard(){
   try{
@@ -819,6 +1319,14 @@ async function fetchLeaderboard(){
   }
 }
 
+async function loadStartLeaderboard(){
+  const body = document.getElementById('startLbBody');
+  if(!body) return;
+  const data = await fetchLeaderboard();
+  body.innerHTML = renderLeaderboardRows(data.entries);
+}
+loadStartLeaderboard();
+
 async function submitScore(name){
   const res = await fetch('/api/leaderboard', {
     method:'POST',
@@ -826,6 +1334,7 @@ async function submitScore(name){
     body: JSON.stringify({
       name,
       company: state.company.name,
+      email: state.playerEmail || '',
       netProfit: netProfitTotal(),
       totalRevenue: state.totalRevenue,
     }),
@@ -958,22 +1467,31 @@ async function finalReport(bankrupt){
     ${buildPLTable(state.history, { includeTotal: true })}
     ${leaderboardBlock({ showForm:true, entries:[] })}
     ${gradeCTA(ctaCopy)}
+    ${shareBoxHtml()}
     <button class="big" id="restartBtn">PLAY AGAIN</button>
+    ${gradeFooterHtml()}
   `, 'light');
   document.getElementById('restartBtn').onclick = restart;
+  wireShareButtons();
   await wireLeaderboard(true);
 }
 function restart(){
   hideModal();
   clearInterval(tickInterval);
   document.getElementById('spritesLayer').innerHTML = '';
+  document.getElementById('deskLayer').innerHTML = '';
+  document.getElementById('propLayer').innerHTML = '';
   spriteEls = {};
+  deskEls = [];
+  desksDirty = true;
+  propsDirty = true;
   document.getElementById('game').style.display='none';
   document.getElementById('start').style.display='block';
   document.getElementById('startBtn').disabled = true;
   document.querySelectorAll('.pick').forEach(p=>p.classList.remove('sel'));
   selectedCompany = null;
   state = null;
+  loadStartLeaderboard();
 }
 function showModal(html, cls){
   const box = document.getElementById('modalBox');
@@ -984,9 +1502,20 @@ function showModal(html, cls){
 function hideModal(){ document.getElementById('modal').style.display='none'; }
 
 /* ===================== ISO OFFICE ===================== */
+function applyOfficeScale(){
+  const world = document.getElementById('isoWorld');
+  const s = state.officeScale || 0.95;
+  world.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+
 function buildIsoFloor(){
-  const layer = document.getElementById('floorLayer');
-  layer.innerHTML = '';
+  const floor = document.getElementById('floorLayer');
+  const walls = document.getElementById('wallLayer');
+  floor.innerHTML = '';
+  walls.innerHTML = '';
+  const GRID = state.officeGrid || 10;
+  applyOfficeScale();
+
   for(let gy=0; gy<GRID; gy++){
     for(let gx=0; gx<GRID; gx++){
       const p = isoToScreen(gx, gy);
@@ -996,8 +1525,33 @@ function buildIsoFloor(){
       tile.style.left = p.x + 'px';
       tile.style.top = p.y + 'px';
       tile.style.zIndex = String(gx + gy);
-      layer.appendChild(tile);
+      floor.appendChild(tile);
     }
+  }
+
+  // Back walls — meet cleanly at the north tip (no corner gap)
+  const placeWall = (gx, gy, src, cls, zBias) => {
+    const p = isoToScreen(gx, gy);
+    const div = document.createElement('div');
+    div.className = 'isoWallSeg' + (cls ? ' '+cls : '');
+    div.style.left = p.x + 'px';
+    div.style.top = (p.y + 4) + 'px';
+    div.style.zIndex = String(Math.max(0, Math.floor(gx + gy) + (zBias || 0)));
+    div.innerHTML = `<img src="${src}" alt="" draggable="false" decoding="async">`;
+    walls.appendChild(div);
+  };
+
+  // Corner keystone — fills the slit where N and W edges meet
+  placeWall(-0.28, -0.28, ASSET.wallN, 'corner', 2);
+
+  // North edge (gy low): runs down-right
+  for(let gx = 0; gx < GRID; gx += 1){
+    const useWindow = (gx % 3 === 1);
+    placeWall(gx + 0.15, -0.58, useWindow ? ASSET.wallWindow : ASSET.wallN, 'north');
+  }
+  // West edge (gx low): runs down-left — include gy=0 so it butts into the corner
+  for(let gy = 0; gy < GRID; gy += 1){
+    placeWall(-0.58, gy + 0.15, ASSET.wallW, 'west');
   }
 }
 
@@ -1005,67 +1559,144 @@ function deskPos(i){
   const g = deskGridPos(i);
   return isoToScreen(g.gx, g.gy);
 }
+/** Screen position of the chair — prefer live desk DOM so people can't drift from furniture */
+function seatPos(i){
+  const deskEl = deskEls[i];
+  if(deskEl){
+    const dx = parseFloat(deskEl.style.left);
+    const dy = parseFloat(deskEl.style.top);
+    if(Number.isFinite(dx) && Number.isFinite(dy)){
+      return { x: dx + 6, y: dy + 16 };
+    }
+  }
+  const desk = deskPos(i);
+  return { x: desk.x + 6, y: desk.y + 18 };
+}
 
-function renderOffice(){
-  const tier = state.totalRevenue>=15000 ? 3 : state.totalRevenue>=5000 ? 2 : 1;
+function placeProp(html, gx, gy, zExtra, cls){
+  const p = isoToScreen(gx, gy);
+  const z = depthZ(gx, gy, zExtra || 8);
+  return `<div class="isoProp ${cls||''}" style="left:${p.x}px;top:${p.y}px;z-index:${z}">${html}</div>`;
+}
+
+function syncOfficeTier(){
+  const tier = officeTierFor(state.totalRevenue);
+  const grew = tier.id !== state.officeTier || tier.grid !== state.officeGrid;
+  state.officeTier = tier.id;
+  state.officeGrid = tier.grid;
+  state.officeScale = tier.scale;
+  state.maxDesks = tier.maxDesks;
+  if(grew){
+    buildIsoFloor();
+    desksDirty = true;
+    propsDirty = true;
+  }
+  return tier;
+}
+
+function updateOfficeLabels(tier){
   const scene = document.getElementById('officeScene');
-  scene.className = 'tier'+tier;
-  document.getElementById('officeTierName').textContent = tier===1?'GARAGE':tier===2?'OFFICE':'GRADE HQ';
-  const nextGoal = tier===1?5000:tier===2?15000:null;
-  document.getElementById('officeProgress').textContent = nextGoal
-    ? `Total revenue: $${state.totalRevenue} (next upgrade at $${nextGoal})`
-    : `Total revenue: $${state.totalRevenue} — office fully upgraded`;
-  document.getElementById('sceneBadge').textContent = `Q${state.quarter} · ${Math.max(0,Math.ceil(state.timeLeft))}s`;
+  scene.className = 'tier'+tier.id;
+  document.getElementById('officeTierName').textContent = tier.name;
+  const next = OFFICE_TIERS.find(t => t.id === tier.id + 1);
+  document.getElementById('officeProgress').textContent = next
+    ? `Total revenue: $${state.totalRevenue} · next wing at $${next.revenue} (${next.grid}×${next.grid}, ${next.maxDesks} desks)`
+    : `Total revenue: $${state.totalRevenue} · ${tier.grid}×${tier.grid} · up to ${tier.maxDesks} desks`;
+  document.getElementById('sceneBadge').textContent = `Q${state.quarter} · ${Math.max(0,Math.ceil(state.timeLeft))}s · ${tier.grid}×${tier.grid}`;
 
   document.querySelectorAll('.isoFloor').forEach(t=>{
     t.classList.remove('tier2','tier3');
-    if(tier===2) t.classList.add('tier2');
-    if(tier===3) t.classList.add('tier3');
+    if(tier.id===2) t.classList.add('tier2');
+    if(tier.id===3) t.classList.add('tier3');
   });
 
   const floors = document.getElementById('floorCircles');
-  floors.innerHTML = '';
-  for(let f=1; f<=3; f++){
-    const div = document.createElement('div');
-    div.className = 'floorCircle' + (f<=tier?' unlocked':'') + (f===tier?' active':'');
-    div.textContent = f;
-    floors.appendChild(div);
+  if(floors.dataset.tier !== String(tier.id)){
+    floors.dataset.tier = String(tier.id);
+    floors.innerHTML = '';
+    for(let f=1; f<=3; f++){
+      const div = document.createElement('div');
+      div.className = 'floorCircle' + (f<=tier.id?' unlocked':'') + (f===tier.id?' active':'');
+      div.textContent = f;
+      floors.appendChild(div);
+    }
   }
 
-  const props = document.getElementById('propLayer');
-  props.innerHTML = '';
-  const coffee = isoToScreen(3.2, 0.2);
-  props.innerHTML += `<div class="isoProp" style="left:${coffee.x}px;top:${coffee.y}px;z-index:8;">☕</div>`;
-  if(tier>=2){
-    const plant = isoToScreen(0.2, 3.1);
-    props.innerHTML += `<div class="isoProp" style="left:${plant.x}px;top:${plant.y}px;z-index:9;">🌿</div>`;
-  }
   const decor = document.getElementById('officeDecor');
-  decor.innerHTML = '';
-  if(tier>=3){
-    decor.innerHTML = `<div class="isoLogoWall">${renderPixelLogo(3)}<span class="pixel tag">GRADE HQ</span></div>`;
+  if(tier.id>=3 && !decor.dataset.hq){
+    decor.dataset.hq = '1';
+    decor.innerHTML = `<div class="isoLogoWall"><img src="${ASSET.logo}" alt="G"><span class="pixel tag">GRADE HQ</span></div>`;
+  } else if(tier.id<3 && decor.dataset.hq){
+    decor.dataset.hq = '';
+    decor.innerHTML = '';
   }
+}
 
+function syncProps(tier){
+  const g = state.officeGrid;
+  const props = document.getElementById('propLayer');
+  let propHtml = '';
+  propHtml += placeProp(`<img src="${ASSET.conference}" alt="" decoding="async">`, g - 2.2, g - 2.0, 12, 'conference');
+  propHtml += placeProp(`<img src="${ASSET.coffee}" alt="" decoding="async">`, g - 1.2, g - 3.0, 13, 'coffee');
+  propHtml += placeProp(`<img src="${ASSET.plant}" alt="" decoding="async">`, 0.9, g - 1.6, 11, 'plant');
+  if(tier.id>=2){
+    propHtml += placeProp(`<img src="${ASSET.plant}" alt="" decoding="async">`, g - 1.4, 1.0, 10, 'plant');
+    propHtml += placeProp('<div class="partition"></div>', g/2, 2.4, 9, '');
+  }
+  if(tier.id>=3){
+    propHtml += placeProp(`<img src="${ASSET.plant}" alt="" decoding="async">`, 1.0, 1.0, 10, 'plant');
+    propHtml += placeProp('<div class="partition"></div>', g/2 + 1, g/2, 9, '');
+  }
+  props.innerHTML = propHtml;
+  propsDirty = false;
+}
+
+/** Incremental desk sync — never wipe/recreate every tick (that caused flicker) */
+function syncDesks(){
   const deskLayer = document.getElementById('deskLayer');
-  deskLayer.innerHTML = '';
+  while(deskEls.length > state.desks.length){
+    const el = deskEls.pop();
+    if(el) el.remove();
+  }
   state.desks.forEach((empId,i)=>{
     const pos = deskPos(i);
-    const g = deskGridPos(i);
-    const div = document.createElement('div');
-    div.className = 'isoDesk'+(empId!==null?' filled':'');
+    const slot = deskGridPos(i);
+    let div = deskEls[i];
+    if(!div){
+      div = document.createElement('div');
+      div.className = 'isoDesk';
+      div.innerHTML = `<img src="${ASSET.desk}" alt="desk" draggable="false" decoding="async">`;
+      deskLayer.appendChild(div);
+      deskEls[i] = div;
+    }
+    div.classList.toggle('filled', empId!==null);
     div.style.left = pos.x+'px';
-    div.style.top = (pos.y + 6)+'px';
-    div.style.zIndex = String(Math.floor((g.gx+g.gy)*10)+5);
-    div.innerHTML = '<div class="legL"></div><div class="legR"></div><div class="deskTop"></div><div class="monitor"></div>';
-    deskLayer.appendChild(div);
+    div.style.top = (pos.y + 2)+'px';
+    div.style.zIndex = String(depthZ(slot.gx, slot.gy, 5));
   });
+  desksDirty = false;
+}
 
-  syncSprites();
-
+function updateBuildButton(){
   const buildBtn = document.getElementById('toolBuild');
   const maxed = state.desks.length>=state.maxDesks;
   document.getElementById('buildBadge').textContent = maxed ? 'MAX' : `$${state.deskCost}`;
   buildBtn.disabled = maxed || state.budget<state.deskCost;
+}
+
+function renderOffice(force){
+  const tier = syncOfficeTier();
+  updateOfficeLabels(tier);
+  if(force || propsDirty) syncProps(tier);
+  if(force || desksDirty) syncDesks();
+  else {
+    // still refresh filled state without recreating imgs
+    state.desks.forEach((empId,i)=>{
+      if(deskEls[i]) deskEls[i].classList.toggle('filled', empId!==null);
+    });
+  }
+  syncSprites();
+  updateBuildButton();
 }
 
 function syncSprites(){
@@ -1074,8 +1705,8 @@ function syncSprites(){
     if(!state.employees.find(e=>e.id===id)){ spriteEls[id].remove(); delete spriteEls[id]; }
   });
   state.employees.forEach(emp=>{
-    const pos = deskPos(emp.deskIndex);
-    emp.homeX = pos.x; emp.homeY = pos.y - 4;
+    const seat = seatPos(emp.deskIndex);
+    emp.homeX = seat.x; emp.homeY = seat.y;
     if(!spriteEls[emp.id]){
       const div = document.createElement('div');
       div.className = 'sprite role-'+emp.role;
@@ -1083,62 +1714,118 @@ function syncSprites(){
         <div class="spriteLabel"><span class="nm">${emp.name}</span><span class="st idle">IDLE</span></div>
         <div class="satbar"><i></i></div>
         <div class="shadow"></div>
-        <div class="pxbody">
-          <div class="prop"></div>
-          <div class="legs"><span></span><span></span></div>
-          <div class="torso"></div>
-          <div class="head"></div>
-          <div class="hair" style="background:${emp.hair}"></div>
-        </div>`;
+        <img class="sprImg" src="${charFrame(emp.role,'idle')}" alt="${emp.name}" width="32" height="44" draggable="false">`;
       div.title = `${emp.name} (${ROLES[emp.role].label}) — click = $300 bonus`;
       div.onclick = (ev)=>{ ev.stopPropagation(); giveBonus(emp.id); };
+      div.style.left = seat.x + 'px';
+      div.style.top = seat.y + 'px';
       layer.appendChild(div);
       spriteEls[emp.id] = div;
-      emp.x = emp.homeX; emp.y = emp.homeY; emp.tx = emp.homeX; emp.ty = emp.homeY;
+      emp.x = seat.x; emp.y = seat.y; emp.tx = seat.x; emp.ty = seat.y;
+      emp.walking = false;
+      emp.animFrame = 0; emp.animTick = 0;
+      emp.nextWander = Date.now() + rand(800, 2200);
+    } else if(emp.status === 'working'){
+      // Snap to desk when assigned a lead/task
+      emp.x = seat.x; emp.y = seat.y;
+      emp.tx = seat.x; emp.ty = seat.y;
+      emp.walking = false;
+    } else if(!Number.isFinite(emp.x) || !Number.isFinite(emp.y)){
+      emp.x = seat.x; emp.y = seat.y;
+      emp.tx = seat.x; emp.ty = seat.y;
     }
   });
 }
 
+/** Random walk point on the office floor (never the shared north tip) */
+function randomWanderPos(emp){
+  const g = state.officeGrid || 12;
+  const margin = 1.2;
+  const gx = margin + Math.random() * (g - margin * 2);
+  const gy = margin + Math.random() * (g - margin * 2);
+  const p = isoToScreen(gx, gy);
+  // Slight per-employee jitter so two idle people rarely pick the exact same pixel
+  const jitter = ((emp.deskIndex || 0) % 5) * 3;
+  return { x: p.x + jitter, y: p.y + (jitter % 7) };
+}
+
 /* ===================== ANIMATION ===================== */
 function updateEmployeeMovement(emp){
-  if(emp.status==='working'){
-    emp.tx = emp.homeX; emp.ty = emp.homeY;
+  const seat = seatPos(emp.deskIndex);
+  emp.homeX = seat.x; emp.homeY = seat.y;
+  if(!Number.isFinite(emp.x) || !Number.isFinite(emp.y)){
+    emp.x = seat.x; emp.y = seat.y;
+  }
+
+  if(emp.status === 'working'){
+    // On a lead/task — sit at own desk
+    emp.tx = seat.x;
+    emp.ty = seat.y;
   } else {
+    // Idle — stroll the floor, then pause, then pick a new spot
     if(!emp.nextWander || Date.now() > emp.nextWander){
-      const opts = [
-        {x:emp.homeX, y:emp.homeY},
-        isoToScreen(3.1, 0.3),
-        {x:emp.homeX+rand(-18,18), y:emp.homeY+rand(-10,10)},
-      ];
-      const t = pick(opts);
-      emp.tx = t.x;
-      emp.ty = t.y;
-      emp.nextWander = Date.now() + rand(2500,6000);
+      if(Math.random() < 0.35){
+        // Sometimes return to own desk for a break
+        emp.tx = seat.x + rand(-4, 4);
+        emp.ty = seat.y + rand(-2, 4);
+      } else {
+        const t = randomWanderPos(emp);
+        emp.tx = t.x;
+        emp.ty = t.y;
+      }
+      emp.nextWander = Date.now() + rand(2800, 6000);
     }
   }
-  const dx = emp.tx-emp.x, dy = emp.ty-emp.y, dist = Math.hypot(dx,dy);
-  const speed = 0.45;
-  if(dist > 2){ emp.x += dx/dist*speed; emp.y += dy/dist*speed; emp.walking = true; }
-  else { emp.walking = false; }
+
+  const dx = emp.tx - emp.x, dy = emp.ty - emp.y;
+  const dist = Math.hypot(dx, dy);
+  const speed = emp.status === 'working' ? 0.55 : 0.38;
+  if(dist > 1.4){
+    emp.x += (dx / dist) * speed;
+    emp.y += (dy / dist) * speed;
+    emp.walking = true;
+  } else {
+    emp.x = emp.tx;
+    emp.y = emp.ty;
+    emp.walking = false;
+  }
 }
 function positionSprites(){
   state.employees.forEach(emp=>{
     const div = spriteEls[emp.id];
     if(!div) return;
-    div.style.left = emp.x+'px';
-    div.style.top = emp.y+'px';
-    div.style.zIndex = String(20 + Math.floor(emp.y));
+    div.style.left = emp.x + 'px';
+    div.style.top = emp.y + 'px';
+    const slot = deskGridPos(emp.deskIndex);
+    div.style.zIndex = String(depthZ(slot.gx, slot.gy, 40) + Math.floor(emp.y));
     div.classList.toggle('walking', !!emp.walking);
-    div.classList.toggle('working', emp.status==='working' && !emp.walking);
+    div.classList.toggle('working', emp.status === 'working' && !emp.walking);
+
+    const img = div.querySelector('.sprImg');
+    emp.animTick = (emp.animTick || 0) + 1;
+    if(emp.animTick % 10 === 0) emp.animFrame = ((emp.animFrame || 0) + 1) % 4;
+    let frame = 'idle';
+    if(emp.status === 'working' && !emp.walking) frame = (emp.animFrame % 2 === 0) ? 'work0' : 'work1';
+    else if(emp.walking) frame = 'walk' + (emp.animFrame % 4);
+    const src = charFrame(emp.role, frame);
+    if(img && img.dataset.frame !== src){ img.src = src; img.dataset.frame = src; }
+
     const bar = div.querySelector('.satbar i');
-    bar.style.width = emp.satisfaction+'%';
-    bar.style.background = emp.satisfaction<30 ? 'var(--red)' : emp.satisfaction<60 ? 'var(--yellow)' : 'var(--green)';
+    syncSatisfactionBar(emp);
+    const band = moraleBand(emp);
+    bar.style.width = Math.max(0, emp.satisfaction) + '%';
+    bar.style.background = band === 'red' ? 'var(--red)' : band === 'yellow' ? 'var(--yellow)' : 'var(--green)';
     const st = div.querySelector('.spriteLabel .st');
     if(st){
       let label = 'IDLE', cls = 'idle';
-      if(emp.status==='working') { label = emp.role==='sales' ? 'CLOSING' : 'BUILDING'; cls = ''; }
-      else if(emp.walking) { label = 'BREAK'; cls = 'idle'; }
-      if(emp.satisfaction<30){ label = 'LOW'; cls = 'low'; }
+      if(emp.status === 'working') {
+        label = emp.role === 'sales' ? 'CLOSING' : 'BUILDING';
+        cls = '';
+        if(band === 'yellow') { label = 'SLOW'; cls = 'low'; }
+        if(band === 'red') { label = 'BURNOUT'; cls = 'low'; }
+      } else if(emp.walking) { label = 'BREAK'; cls = 'idle'; }
+      if(band === 'yellow' && emp.status !== 'working'){ label = 'TIRED'; cls = 'low'; }
+      if(band === 'red' && emp.status !== 'working'){ label = 'CRITICAL'; cls = 'low'; }
       st.textContent = label;
       st.className = 'st ' + cls;
     }
@@ -1154,11 +1841,27 @@ function animate(){
 requestAnimationFrame(animate);
 
 /* ===================== RENDER ===================== */
-function render(){
+function render(force){
+  if(!state) return;
   renderHUD();
   renderHint();
-  renderOffice();
+  renderOffice(!!force);
   renderSide();
+}
+/** Light per-tick update: HUD + sprites only — no desk DOM rebuild */
+function renderLight(){
+  if(!state) return;
+  renderHUD();
+  renderHint();
+  const tier = syncOfficeTier();
+  updateOfficeLabels(tier);
+  if(propsDirty) syncProps(tier);
+  if(desksDirty) syncDesks();
+  else state.desks.forEach((empId,i)=>{ if(deskEls[i]) deskEls[i].classList.toggle('filled', empId!==null); });
+  syncSprites();
+  updateBuildButton();
+  sideAcc += 0.1;
+  if(sideAcc >= 0.35){ renderSide(); sideAcc = 0; }
 }
 function renderHUD(){
   document.getElementById('hudBudget').textContent = '$'+Math.max(0,Math.round(state.budget));

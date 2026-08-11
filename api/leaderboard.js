@@ -64,6 +64,16 @@ function sanitizeName(name) {
     .slice(0, 16) || 'CEO';
 }
 
+function sanitizeEmail(email) {
+  const s = String(email || '')
+    .trim()
+    .toLowerCase()
+    .slice(0, 64);
+  if (!s) return '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return '';
+  return s;
+}
+
 function rank(list) {
   return list
     .slice()
@@ -101,6 +111,7 @@ module.exports = async function handler(req, res) {
       const entry = {
         name: sanitizeName(body.name),
         company: String(body.company || 'Studio').slice(0, 32),
+        email: sanitizeEmail(body.email),
         netProfit: Math.round(netProfit),
         totalRevenue: Math.round(totalRevenue),
         score,
