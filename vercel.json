@@ -1,6 +1,8 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/s/:id", "destination": "/api/share?id=:id&view=page" },
+    { "source": "/s/:id/card.png", "destination": "/api/share?id=:id&view=image" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "headers": [

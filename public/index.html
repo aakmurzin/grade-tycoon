@@ -1070,14 +1070,15 @@ function shareBoxHtml(){
   return `
     <div class="shareBox" id="shareBox">
       <h3>Share your P&amp;L</h3>
-      <p class="shareHint">Download a result card or post it with a link to the game.</p>
+      <p class="shareHint">Posts include a result card image via a share link (Open Graph). On mobile, SHARE can attach the PNG directly.</p>
       <div class="shareRow">
         <button type="button" class="shareBtn primary" id="shareNativeBtn">SHARE</button>
         <button type="button" class="shareBtn" id="shareDownloadBtn">Download image</button>
         <button type="button" class="shareBtn" id="shareXBtn">X / Twitter</button>
         <button type="button" class="shareBtn" id="shareLiBtn">LinkedIn</button>
         <button type="button" class="shareBtn" id="shareTgBtn">Telegram</button>
-        <button type="button" class="shareBtn" id="shareCopyBtn">Copy link</button>
+        <button type="button" class="shareBtn" id="shareThreadsBtn">Threads</button>
+        <button type="button" class="shareBtn" id="shareCopyBtn">Copy share link</button>
       </div>
       <div class="shareStatus" id="shareStatus"></div>
     </div>`;
@@ -1093,11 +1094,11 @@ function gradeFooterHtml(){
     </div>`;
 }
 
-function shareText(){
+function shareText(sharePageUrl){
   const net = netProfitTotal();
   const name = state.company?.name || 'My company';
-  const url = gameUrl();
-  return `I ran ${name} in Grade Tycoon.\nNet profit: ${money(net)}\nPlay & see the P&L: ${url}\nReal dashboards → ${GRADE_URL}`;
+  const link = sharePageUrl || gameUrl();
+  return `I ran ${name} in Grade Tycoon.\nNet profit: ${money(net)}\nFull P&L card: ${link}\nPlay → ${gameUrl()}\nReal dashboards → ${GRADE_URL}`;
 }
 
 function loadImage(src){
@@ -1218,9 +1219,52 @@ async function shareCardBlob(){
   });
 }
 
+function blobToBase64(blob){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(String(reader.result || ''));
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Upload PNG so Telegram/LinkedIn/X/Threads can show og:image on the share page */
+async function publishShareCard(){
+  if(window.__sharePublishCache?.pageUrl) return window.__sharePublishCache;
+  const blob = await shareCardBlob();
+  const dataUrl = await blobToBase64(blob);
+  const net = netProfitTotal();
+  const company = state.company?.name || 'Company';
+  const res = await fetch('/api/share', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageBase64: dataUrl,
+      meta: {
+        company,
+        netLabel: money(net),
+        title: `${company} — Grade Tycoon P&L`,
+        description: `Net profit ${money(net)}. Play Grade Tycoon, then run live P&L on grade.app.`,
+        playUrl: gameUrl(),
+      },
+    }),
+  });
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error || 'upload failed');
+  }
+  const data = await res.json();
+  window.__sharePublishCache = { ...data, blob };
+  return window.__sharePublishCache;
+}
+
 function setShareStatus(msg){
   const el = document.getElementById('shareStatus');
   if(el) el.textContent = msg || '';
+}
+
+function openShareWindow(u){
+  window.open(u, '_blank', 'noopener,width=640,height=640');
 }
 
 function wireShareButtons(){
@@ -1229,39 +1273,51 @@ function wireShareButtons(){
   const xBtn = document.getElementById('shareXBtn');
   const liBtn = document.getElementById('shareLiBtn');
   const tgBtn = document.getElementById('shareTgBtn');
+  const threadsBtn = document.getElementById('shareThreadsBtn');
   const copyBtn = document.getElementById('shareCopyBtn');
   if(!nativeBtn) return;
 
-  const text = ()=>shareText();
-  const url = ()=>gameUrl();
+  // Invalidate previous upload when opening a new end screen
+  window.__sharePublishCache = null;
+
+  const ensurePublished = async ()=>{
+    setShareStatus('Uploading result card…');
+    const pub = await publishShareCard();
+    setShareStatus('Card ready — preview image will show in the post.');
+    return pub;
+  };
 
   nativeBtn.onclick = async ()=>{
     setShareStatus('Preparing card…');
     try{
-      const blob = await shareCardBlob();
+      let pub = null;
+      try{ pub = await publishShareCard(); }catch{ /* local serve may lack API */ }
+      const blob = pub?.blob || await shareCardBlob();
       const file = new File([blob], 'grade-tycoon-pnl.png', { type: 'image/png' });
+      const shareUrl = pub?.pageUrl || gameUrl();
       if(navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))){
         await navigator.share({
           title: 'Grade Tycoon — my P&L',
-          text: text(),
-          url: url(),
+          text: shareText(shareUrl),
+          url: shareUrl,
           files: [file],
         });
-        setShareStatus('Shared.');
+        setShareStatus('Shared with image.');
         return;
       }
       if(navigator.share){
-        await navigator.share({ title: 'Grade Tycoon — my P&L', text: text(), url: url() });
-        setShareStatus('Shared.');
+        await navigator.share({ title: 'Grade Tycoon — my P&L', text: shareText(shareUrl), url: shareUrl });
+        setShareStatus(pub ? 'Shared link (card image via preview).' : 'Shared.');
         return;
       }
-      // Fallback: download image
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'grade-tycoon-pnl.png';
       a.click();
       URL.revokeObjectURL(a.href);
-      setShareStatus('Image downloaded — attach it in your post.');
+      setShareStatus(pub
+        ? `Image saved. Share link: ${pub.pageUrl}`
+        : 'Image downloaded — attach it in your post.');
     }catch(err){
       if(err && err.name === 'AbortError'){ setShareStatus(''); return; }
       setShareStatus('Could not share — try Download image.');
@@ -1283,27 +1339,54 @@ function wireShareButtons(){
     }
   };
 
-  xBtn.onclick = ()=>{
-    const u = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text())}`;
-    window.open(u, '_blank', 'noopener,width=600,height=500');
-    setShareStatus('Opened X — attach the downloaded image for best results.');
+  const shareToNetwork = async (network)=>{
+    try{
+      const pub = await ensurePublished();
+      const page = pub.pageUrl;
+      const msg = shareText(page);
+      if(network === 'x'){
+        openShareWindow(`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(page)}`);
+      } else if(network === 'linkedin'){
+        openShareWindow(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(page)}`);
+      } else if(network === 'telegram'){
+        openShareWindow(`https://t.me/share/url?url=${encodeURIComponent(page)}&text=${encodeURIComponent(msg)}`);
+      } else if(network === 'threads'){
+        openShareWindow(`https://www.threads.net/intent/post?text=${encodeURIComponent(msg)}`);
+      }
+      setShareStatus('Opened share dialog — the card image comes from the link preview.');
+    }catch{
+      setShareStatus('Upload failed (need `vercel dev` / deployed API). Downloading image instead…');
+      try{
+        const blob = await shareCardBlob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'grade-tycoon-pnl.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        setShareStatus('Image downloaded — attach it manually in the post.');
+      }catch{
+        setShareStatus('Share failed.');
+      }
+    }
   };
-  liBtn.onclick = ()=>{
-    const u = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url())}`;
-    window.open(u, '_blank', 'noopener,width=600,height=600');
-    setShareStatus('Opened LinkedIn — paste your P&L numbers or attach the image.');
-  };
-  tgBtn.onclick = ()=>{
-    const u = `https://t.me/share/url?url=${encodeURIComponent(url())}&text=${encodeURIComponent(text())}`;
-    window.open(u, '_blank', 'noopener');
-    setShareStatus('Opened Telegram.');
-  };
+
+  xBtn.onclick = ()=>shareToNetwork('x');
+  liBtn.onclick = ()=>shareToNetwork('linkedin');
+  tgBtn.onclick = ()=>shareToNetwork('telegram');
+  if(threadsBtn) threadsBtn.onclick = ()=>shareToNetwork('threads');
+
   copyBtn.onclick = async ()=>{
     try{
-      await navigator.clipboard.writeText(text());
-      setShareStatus('Copied result + link to clipboard.');
+      const pub = await ensurePublished();
+      await navigator.clipboard.writeText(shareText(pub.pageUrl));
+      setShareStatus(`Copied text + share link (with image): ${pub.pageUrl}`);
     }catch{
-      setShareStatus(url());
+      try{
+        await navigator.clipboard.writeText(shareText(gameUrl()));
+        setShareStatus('Copied text (image link unavailable without API).');
+      }catch{
+        setShareStatus(gameUrl());
+      }
     }
   };
 }
