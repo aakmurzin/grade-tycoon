@@ -492,6 +492,10 @@ button.ghost:hover{ border-color:var(--blue); }
     <div class="company-picks" id="picks"></div>
     <div class="startForm">
       <div>
+        <label for="playerName">Your name</label>
+        <input id="playerName" maxlength="16" placeholder="e.g. Alex" autocomplete="nickname" />
+      </div>
+      <div>
         <label for="companyName">Company name</label>
         <input id="companyName" maxlength="28" placeholder="e.g. Northwind Studio" autocomplete="organization" />
       </div>
@@ -710,6 +714,7 @@ function initState(companyId){
   const c = COMPANIES.find(x=>x.id===companyId);
   const tier = officeTierFor(0);
   const customName = (document.getElementById('companyName')?.value || '').trim();
+  const playerName = (document.getElementById('playerName')?.value || '').trim();
   const email = (document.getElementById('playerEmail')?.value || '').trim();
   return {
     company: { ...c, name: customName || c.name, templateName: c.name },
@@ -722,7 +727,7 @@ function initState(companyId){
     leadSpawnTimer: 4, leadSpawnEvery: 6,
     activeTab: 'recruit', totalRevenue: 0, totalSalaries: 0, gameOver: false,
     history: [],
-    playerName: '',
+    playerName: playerName.slice(0, 16) || 'CEO',
     playerEmail: email,
     scoreSubmitted: false,
     lastScoreResult: null,
@@ -733,8 +738,9 @@ function initState(companyId){
 const picksEl = document.getElementById('picks');
 let selectedCompany = null;
 function refreshStartBtn(){
-  const nameOk = (document.getElementById('companyName')?.value || '').trim().length >= 2;
-  document.getElementById('startBtn').disabled = !(selectedCompany && nameOk);
+  const ceoOk = (document.getElementById('playerName')?.value || '').trim().length >= 2;
+  const companyOk = (document.getElementById('companyName')?.value || '').trim().length >= 2;
+  document.getElementById('startBtn').disabled = !(selectedCompany && ceoOk && companyOk);
 }
 COMPANIES.forEach(c=>{
   const div = document.createElement('div');
@@ -752,6 +758,7 @@ COMPANIES.forEach(c=>{
   };
   picksEl.appendChild(div);
 });
+document.getElementById('playerName').addEventListener('input', refreshStartBtn);
 document.getElementById('companyName').addEventListener('input', refreshStartBtn);
 document.getElementById('startBtn').onclick = ()=>{
   state = initState(selectedCompany);
@@ -765,7 +772,7 @@ document.getElementById('startBtn').onclick = ()=>{
   requestAnimationFrame(()=>{ applyOfficeScale(); requestAnimationFrame(applyOfficeScale); });
   render(true);
   showTutorial();
-  // Capture optional email for mailing list even if the player never submits a score
+  // Capture optional email for mailing list even if the player never finishes
   if(state.playerEmail){
     fetch('/api/leaderboard', {
       method:'POST',
@@ -773,7 +780,7 @@ document.getElementById('startBtn').onclick = ()=>{
       body: JSON.stringify({
         leadOnly: true,
         email: state.playerEmail,
-        name: state.company.name,
+        name: state.playerName,
         company: state.company.name,
       }),
     }).catch(()=>{});
@@ -1486,6 +1493,8 @@ async function submitScore(name){
 }
 
 function defaultCeoName(){
+  const fromPlayer = (state.playerName || '').trim().slice(0, 16);
+  if(fromPlayer) return fromPlayer;
   const fromCompany = (state.company?.name || '').trim().slice(0, 16);
   return fromCompany || 'CEO';
 }
@@ -1530,7 +1539,7 @@ function leaderboardBlock(opts={}){
         <thead><tr><th>#</th><th>Name</th><th>Company</th><th style="text-align:right;">Score</th></tr></thead>
         <tbody id="lbBody">${renderLeaderboardRows(entries, submittedAt)}</tbody>
       </table>
-      <p class="lbNote">Auto-saved from your company name · Score = Net Profit + 15% revenue</p>
+      <p class="lbNote">Auto-saved from your name &amp; company · Score = Net Profit + 15% revenue</p>
     </div>`;
 }
 
