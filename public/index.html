@@ -194,9 +194,9 @@ button.ghost:hover{ border-color:var(--blue); }
   font-family:'Press Start 2P'; font-size:7px; padding:4px 6px; letter-spacing:.5px;
 }
 #isoWorld{
-  position:absolute; left:50%; top:56%; width:0; height:0;
-  transform:translate(-50%, -50%);
-  transform-origin:center center;
+  position:absolute; left:50%; top:50%; width:0; height:0;
+  transform:translateX(-50%);
+  transform-origin:0 0;
   z-index:2;
 }
 /* Layer stacking: walls always behind people/furniture */
@@ -1643,26 +1643,39 @@ function showModal(html, cls){
 function hideModal(){ document.getElementById('modal').style.display='none'; }
 
 /* ===================== ISO OFFICE ===================== */
-/** Fit the isometric world to the actual #officeScene box (full-bleed play). */
+/** Fit the full iso diamond (walls + south tip + props) inside #officeScene. */
 function applyOfficeScale(){
   const world = document.getElementById('isoWorld');
   const scene = document.getElementById('officeScene');
   if(!world || !scene || !state) return;
   const GRID = state.officeGrid || 12;
-  // Iso diamond extents + wall/furniture overhang
-  const contentW = (GRID - 1) * TILE_W + 96;
-  const contentH = (GRID - 1) * TILE_H + 160;
-  const availW = Math.max(180, scene.clientWidth - 12);
-  const availH = Math.max(180, scene.clientHeight - 12);
-  if(availW < 40 || availH < 40){
-    world.style.transform = `translate(-50%, -50%) scale(${state.officeScale || 1})`;
-    return;
-  }
-  let scale = Math.min(availW / contentW, availH / contentH) * 0.94;
-  // Upscale on large laptops; keep a floor so Garage never looks tiny
-  scale = Math.max(0.72, Math.min(1.75, scale));
+
+  // World origin (0,0) = north tip of the floor. Bounds are asymmetric.
+  const halfW = (GRID - 1) * (TILE_W / 2);
+  const floorH = (GRID - 1) * TILE_H;
+  const padTop = 58;    // wall sprites above north tip
+  const padBottom = 56; // south tip tile + conference/coffee overhang
+  const padX = 56;      // left/right tips + prop width
+
+  const contentW = halfW * 2 + padX * 2;
+  const contentH = padTop + floorH + padBottom;
+  // Y of visual center relative to world origin
+  const contentCenterY = (-padTop + floorH + padBottom) / 2;
+
+  const availW = Math.max(160, scene.clientWidth - 20);
+  const availH = Math.max(160, scene.clientHeight - 20);
+  if(availW < 40 || availH < 40) return;
+
+  // Always shrink to fit — never force a min scale that clips the south corner
+  let scale = Math.min(availW / contentW, availH / contentH) * 0.9;
+  scale = Math.max(0.35, Math.min(1.55, scale));
   state.officeScale = scale;
-  world.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+  // Pin world origin so the content center lands in the middle of the scene
+  const originY = scene.clientHeight / 2 - contentCenterY * scale;
+  world.style.left = '50%';
+  world.style.top = `${Math.round(originY)}px`;
+  world.style.transform = `translateX(-50%) scale(${scale})`;
 }
 
 let _officeResizeTimer = null;
