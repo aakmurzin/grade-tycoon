@@ -35,6 +35,19 @@ Without Redis, scores live in serverless memory (reset on cold starts). For a re
 
 In Vercel: Project → Settings → Environment Variables → add both → redeploy.
 
+Optional emails from the start screen are saved to a separate Redis list (`grade-tycoon:contacts`) when the player hits **Start** (and updated again on score submit). They stay available for your mailing list even if a score drops out of the top board. Public leaderboard responses never include emails.
+
+To export contacts, set `LEADERBOARD_EXPORT_SECRET` and call:
+
+```bash
+curl -H "Authorization: Bearer $LEADERBOARD_EXPORT_SECRET" \
+  "https://tycoon.grade.app/api/leaderboard?export=contacts"
+
+# CSV:
+curl -H "Authorization: Bearer $LEADERBOARD_EXPORT_SECRET" \
+  "https://tycoon.grade.app/api/leaderboard?export=contacts&format=csv" -o contacts.csv
+```
+
 ## Project layout
 
 ```

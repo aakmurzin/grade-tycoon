@@ -6,3 +6,5 @@ node_modules
 *.log
 
 stitch_grade_tycoon_asset_prompts/
+.env*
+.cursor-local/

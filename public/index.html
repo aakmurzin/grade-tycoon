@@ -763,6 +763,19 @@ document.getElementById('startBtn').onclick = ()=>{
   requestAnimationFrame(()=>{ applyOfficeScale(); requestAnimationFrame(applyOfficeScale); });
   render(true);
   showTutorial();
+  // Capture optional email for mailing list even if the player never submits a score
+  if(state.playerEmail){
+    fetch('/api/leaderboard', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        leadOnly: true,
+        email: state.playerEmail,
+        name: state.company.name,
+        company: state.company.name,
+      }),
+    }).catch(()=>{});
+  }
 };
 document.getElementById('helpBtn').onclick = showTutorial;
 
