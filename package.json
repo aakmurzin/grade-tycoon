@@ -10,5 +10,11 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "vercel": "^58.9.1"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }
