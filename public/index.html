@@ -724,6 +724,8 @@ function initState(companyId){
     history: [],
     playerName: '',
     playerEmail: email,
+    scoreSubmitted: false,
+    lastScoreResult: null,
   };
 }
 
@@ -1483,6 +1485,11 @@ async function submitScore(name){
   return await res.json();
 }
 
+function defaultCeoName(){
+  const fromCompany = (state.company?.name || '').trim().slice(0, 16);
+  return fromCompany || 'CEO';
+}
+
 function renderLeaderboardRows(entries, highlightAt){
   if(!entries.length) return `<tr><td colspan="4" style="color:#8a99a8;">No scores yet — be the first.</td></tr>`;
   return entries.map((e,i)=>`
@@ -1495,51 +1502,90 @@ function renderLeaderboardRows(entries, highlightAt){
 }
 
 function leaderboardBlock(opts={}){
-  const { submittedAt=null, entries=[], place=null, showForm=true } = opts;
+  const {
+    submittedAt=null,
+    entries=[],
+    place=null,
+    score=null,
+    status='loading', // loading | saved | error
+  } = opts;
+  let note = '';
+  if(status === 'loading'){
+    note = `<p class="lbNote">Saving your score…</p>`;
+  } else if(status === 'error'){
+    note = `<p class="lbNote">Couldn't save your score. <button type="button" id="lbRetry" class="shareBtn" style="margin-left:6px;">RETRY</button></p>`;
+  } else if(place){
+    const outside = place > 10
+      ? ` · not in the top 10 yet (score ${money(score ?? 0)})`
+      : ` · score ${money(score ?? 0)}`;
+    note = `<p class="lbNote">Saved — you're <strong>#${place}</strong>${outside}.</p>`;
+  } else {
+    note = `<p class="lbNote">Score saved.</p>`;
+  }
   return `
     <div class="lbBox" id="lbBox">
       <h3>Leaderboard</h3>
-      ${showForm ? `
-      <div class="lbForm">
-        <input id="lbName" maxlength="16" placeholder="Your name / CEO nick" value="${(state.playerName||'').replace(/"/g,'&quot;')}" />
-        <button type="button" id="lbSubmit">SUBMIT SCORE</button>
-      </div>` : (place ? `<p class="lbNote">You're #${place} on the board.</p>` : '')}
+      ${note}
       <table class="lbTable">
         <thead><tr><th>#</th><th>Name</th><th>Company</th><th style="text-align:right;">Score</th></tr></thead>
         <tbody id="lbBody">${renderLeaderboardRows(entries, submittedAt)}</tbody>
       </table>
-      <p class="lbNote">Score = Net Profit + 15% of total revenue.</p>
+      <p class="lbNote">Auto-saved from your company name · Score = Net Profit + 15% revenue</p>
     </div>`;
 }
 
-async function wireLeaderboard(showForm){
-  const data = await fetchLeaderboard();
-  const body = document.getElementById('lbBody');
-  if(body) body.innerHTML = renderLeaderboardRows(data.entries);
-  const btn = document.getElementById('lbSubmit');
-  if(!btn || !showForm) return;
-  btn.onclick = async ()=>{
-    const input = document.getElementById('lbName');
-    const name = (input && input.value.trim()) || 'CEO';
-    state.playerName = name;
-    btn.disabled = true;
-    btn.textContent = '...';
-    try{
-      const result = await submitScore(name);
-      const box = document.getElementById('lbBox');
-      if(box){
-        box.outerHTML = leaderboardBlock({
-          showForm:false,
-          entries: result.entries,
-          place: result.place,
-          submittedAt: result.entry.at,
-        });
-      }
-    }catch{
-      btn.disabled = false;
-      btn.textContent = 'RETRY';
+async function autoSubmitScore(){
+  if(state.scoreSubmitted && state.lastScoreResult) return state.lastScoreResult;
+  const name = state.playerName || defaultCeoName();
+  state.playerName = name;
+  const result = await submitScore(name);
+  state.scoreSubmitted = true;
+  state.lastScoreResult = result;
+  return result;
+}
+
+function renderLeaderboardResult(result){
+  const box = document.getElementById('lbBox');
+  if(!box) return;
+  box.outerHTML = leaderboardBlock({
+    status: 'saved',
+    entries: result.entries || [],
+    place: result.place,
+    score: result.entry?.score,
+    submittedAt: result.entry?.at,
+  });
+}
+
+async function wireLeaderboard(){
+  const box = document.getElementById('lbBox');
+  try{
+    const result = await autoSubmitScore();
+    renderLeaderboardResult(result);
+  }catch{
+    const data = await fetchLeaderboard();
+    if(box){
+      box.outerHTML = leaderboardBlock({
+        status: 'error',
+        entries: data.entries || [],
+      });
     }
-  };
+    const retry = document.getElementById('lbRetry');
+    if(retry){
+      retry.onclick = async ()=>{
+        retry.disabled = true;
+        retry.textContent = '...';
+        try{
+          state.scoreSubmitted = false;
+          state.lastScoreResult = null;
+          const result = await autoSubmitScore();
+          renderLeaderboardResult(result);
+        }catch{
+          retry.disabled = false;
+          retry.textContent = 'RETRY';
+        }
+      };
+    }
+  }
 }
 
 /* ===================== QUARTER END / GAME OVER ===================== */
@@ -1605,7 +1651,7 @@ async function finalReport(bankrupt){
       <div class="plMeta"><span>${state.company.name}</span>${titleMeta}</div>
     </div>
     ${buildPLTable(state.history, { includeTotal: true })}
-    ${leaderboardBlock({ showForm:true, entries:[] })}
+    ${leaderboardBlock({ status:'loading', entries:[] })}
     ${gradeCTA(ctaCopy)}
     ${shareBoxHtml()}
     <button class="big" id="restartBtn">PLAY AGAIN</button>
@@ -1613,7 +1659,7 @@ async function finalReport(bankrupt){
   `, 'light');
   document.getElementById('restartBtn').onclick = restart;
   wireShareButtons();
-  await wireLeaderboard(true);
+  await wireLeaderboard();
 }
 function restart(){
   hideModal();

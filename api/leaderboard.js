@@ -240,14 +240,15 @@ module.exports = async function handler(req, res) {
       };
       const all = await loadAll();
       all.push(entry);
-      all.sort((a, b) => b.score - a.score);
-      await saveAll(all.slice(0, MAX));
-      await upsertContact(entry);
-      const entries = rank(all);
-      const place = entries.findIndex(
+      all.sort((a, b) => b.score - a.score || b.netProfit - a.netProfit);
+      // Place among all saved runs (not only the public top 10)
+      const placeIdx = all.findIndex(
         (e) => e.at === entry.at && e.name === entry.name && e.score === entry.score
       );
-      res.status(201).json({ entry: publicEntry(entry), place: place >= 0 ? place + 1 : null, entries });
+      const place = placeIdx >= 0 ? placeIdx + 1 : null;
+      await saveAll(all.slice(0, MAX));
+      await upsertContact(entry);
+      res.status(201).json({ entry: publicEntry(entry), place, entries: rank(all) });
       return;
     }
 
